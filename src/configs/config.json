@@ -1,0 +1,84 @@
+{
+  "name": "default_config",
+  "n_gpu": 1,
+  "preprocessing": {
+    "sr": 16000
+  },
+  "audio": {
+    "type": "Audio",
+    "args": {
+      "n_fft": 511
+    }
+  },
+  "augmentations": {
+    "wave": [],
+    "spectrogram": []
+  },
+  "arch": {
+    "type": "SpExPlus",
+    "args": {
+      "num_speakers": 96
+    }
+  },
+  "data": {
+    "train": {
+      "batch_size": 8,
+      "num_workers": 5,
+      "datasets": [
+        {
+          "type": "CustomDirAudioDataset",
+          "args": {
+            "cut_reference": false,
+            "dir": "mixtures_data/train_clean"
+          }
+        }
+      ]
+    },
+    "test": {
+      "batch_size": 4,
+      "num_workers": 5,
+      "datasets": [
+        {
+          "type": "CustomDirAudioDataset",
+          "args": {
+            "dir":  "mixtures_data/test_clean"
+          }
+        }
+      ]
+    }
+  },
+  "optimizer": {
+    "type": "AdamW",
+    "args": {
+      "lr": 1e-3,
+      "weight_decay": 4e-6
+    }
+  },
+  "loss": {
+    "type": "SpExPlusLoss",
+    "args": {}
+  },
+  "metrics": [
+  ],
+  "lr_scheduler": {
+    "type": "ReduceLROnPlateau",
+    "args": {
+      "factor": 0.7,
+      "patience": 2
+    }
+  },
+  "trainer": {
+    "epochs": 150,
+    "save_dir": "saved/",
+    "save_period": 10,
+    "verbosity": 2,
+    "monitor": "min val_loss",
+    "early_stop": 100,
+    "visualize": "wandb",
+    "wandbrun": "aboba",
+    "wandb_project": "tts_project",
+    "grad_norm_clip": 10,
+    "mixed_precision": true,
+    "accumulation_steps": 4
+  }
+}

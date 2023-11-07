@@ -1,0 +1,71 @@
+{
+  "name": "dvec_phase_config",
+  "n_gpu": 1,
+  "augmentations": {
+    "wave": [],
+    "spectrogram": []
+  },
+  "arch": {
+    "type": "ADvector",
+    "args": {
+      "input_size": 256,
+      "hidden_size": 256,
+      "num_layers": 1
+    }
+  },
+  "audio": {
+    "type": "Audio",
+    "args": {
+      "n_fft": 511
+    }
+  },
+  "data": {
+    "train": {
+      "batch_size":4,
+      "num_workers": 5,
+      "datasets": [
+        {
+          "type": "TripletAudioDataset",
+          "args": {
+            "dir": "/home/vladimir/PycharmProjects/TTS/temp_datasets/train_easy",
+            "use_phase": true
+          }
+        }
+      ]
+    }
+  },
+  "optimizer": {
+    "type": "Adam",
+    "args": {
+      "lr": 1e-3
+    }
+  },
+  "loss": {
+    "type": "TripletLossWrapper",
+    "args": {}
+  },
+  "metrics": [
+  ],
+  "lr_scheduler": {
+    "type": "ReduceLROnPlateau",
+    "args": {
+      "factor": 0.85,
+      "patience": 0
+    }
+  },
+  "trainer": {
+    "epochs": 100,
+    "save_dir": "saved/",
+    "save_period": 25,
+    "verbosity": 2,
+    "monitor": "min val_loss",
+    "early_stop": 100,
+    "visualize": "wandb",
+    "wandb_project": "tts_project",
+    "grad_norm_clip": null,
+    "use_autocast": true,
+    "embeds_batches_to_log": 20,
+    "len_epoch": 100,
+    "emb_vis": "tsne"
+  }
+}
