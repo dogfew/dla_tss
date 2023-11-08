@@ -35,7 +35,7 @@ class BaseModel(nn.Module):
     def transform_input_lengths(self, input_lengths):
         """
         Input length transformation function.
-        For example: if your NN transforms spectrogram of time-length `N` into an
-            output with time-length `N / 2`, then this function should return `input_lengths // 2`
+        For example: if your NN transforms spectrogram of time-length `num_filtersSE` into an
+            output with time-length `num_filtersSE / 2`, then this function should return `input_lengths // 2`
         """
         raise NotImplementedError()

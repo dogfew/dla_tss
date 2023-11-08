@@ -90,6 +90,7 @@ class Trainer(BaseTrainer):
         for tensor_for_gpu in [
             "target_audio",
             "mix_audio",
+            "mix_audio_len",
             "reference_audio",
             "reference_audio_len",
             "target_audio_len",

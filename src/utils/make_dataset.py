@@ -299,7 +299,7 @@ if __name__ == "__main__":
         speakers_files, args.path_mixtures, nfiles=args.nfiles, test=args.test
     )
     mixer.generate_mixes(
-        snr_levels=[-5, -1, 0, 1, 5],
+        snr_levels=[-5, -1, 0, 1, 5] if not args.test else [0],
         num_workers=multiprocessing.cpu_count(),
         update_steps=100,
         trim_db=None if args.test else 20,

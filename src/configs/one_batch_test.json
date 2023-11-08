@@ -22,12 +22,7 @@
   },
   "data": {
     "train": {
-      "batch_sampler": {
-        "type": "GroupLengthBatchSampler",
-        "args": {
-          "batch_size": 8
-        }
-      },
+      "batch_size": 4,
       "num_workers": 5,
       "datasets": [
         {
@@ -39,18 +34,13 @@
       ]
     },
     "test": {
-      "batch_sampler": {
-        "type": "GroupLengthBatchSampler",
-        "args": {
-          "batch_size": 8
-        }
-      },
+      "batch_size":4,
       "num_workers": 5,
       "datasets": [
         {
           "type": "CustomDirAudioDataset",
           "args": {
-            "dir": "/home/vladimir/PycharmProjects/TTS/mixtures_data/test_clean"
+            "dir": "/home/vladimir/PycharmProjects/TTS/temp_datasets/one_batch"
           }
         }
       ]

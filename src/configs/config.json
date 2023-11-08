@@ -56,14 +56,16 @@
   },
   "loss": {
     "type": "SpExPlusLoss",
-    "args": {}
+    "args": {
+      "gamma": 0.5
+    }
   },
   "metrics": [
   ],
   "lr_scheduler": {
     "type": "ReduceLROnPlateau",
     "args": {
-      "factor": 0.7,
+      "factor": 0.5,
       "patience": 2
     }
   },
