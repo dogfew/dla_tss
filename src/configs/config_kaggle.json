@@ -56,7 +56,9 @@
   },
   "loss": {
     "type": "SpExPlusLoss",
-    "args": {}
+    "args": {
+      "gamma": 0.5
+    }
   },
   "metrics": [
   ],
