@@ -195,11 +195,9 @@ class Trainer(BaseTrainer):
             outputs = self.model(**batch)
             if type(outputs) is dict:
                 batch.update(outputs)
-            if "s1" in batch:
+            if self.config['arch']['type'] == 'SpExPlus':
                 batch["pred_audio"] = batch["s1"]
-            elif "pred_audio" not in batch and (
-                "pred_spectrogram" in batch or "pred_phase" in batch
-            ):
+            elif self.config['arch']['type'].starswith('VoiceFilter'):
                 spectrogram = batch.get("pred_spectrogram", batch["mix_spectrogram"])
                 phase = batch.get("pred_phase", batch["mix_phase"])
                 waveform_reconstructed = torch.stack(
