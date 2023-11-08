@@ -199,17 +199,15 @@ if __name__ == "__main__":
                 "num_workers": args.jobs,
                 "datasets": [
                     {
-                        "type": "CustomDirAudioDataset",
+                        "type": "CustomDirDataset",
                         "args": {
-                            "audio_dir": str(test_data_folder / "audio"),
-                            "transcription_dir": str(
-                                test_data_folder / "transcriptions"
-                            ),
+                            "dir": str(test_data_folder),
                         },
                     }
                 ],
             }
         }
+        print(config.config['data'])
     if config.config.get("data", {}).get("test", None) is not None:
         arg = 'test'
     elif config.config.get("data", {}).get("test-clean", None) is not None:

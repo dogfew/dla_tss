@@ -10,25 +10,23 @@ class SiSDRLoss(nn.Module):
 
     def forward(self, pred_audio, target_audio, **batch):
         T = target_audio.shape[1]
-        pred_padded = F.pad(
-            pred_audio, (0, T - pred_audio.shape[1])
-        )
+        pred_padded = F.pad(pred_audio, (0, T - pred_audio.shape[1]))
         pred_padded = pred_padded[:, :T]
         target_centered = target_audio - torch.mean(target_audio, dim=-1, keepdim=True)
         pred_centered = pred_padded - torch.mean(pred_padded, dim=-1, keepdim=True)
         scaled_pred = (
-                torch.sum(target_centered * pred_centered, dim=-1, keepdim=True)
-                * pred_centered
-                / (
-                        torch.linalg.norm(pred_centered, ord=2, dim=-1, keepdim=True) ** 2
-                        + self.eps
-                )
+            torch.sum(target_centered * pred_centered, dim=-1, keepdim=True)
+            * pred_centered
+            / (
+                torch.linalg.norm(pred_centered, ord=2, dim=-1, keepdim=True) ** 2
+                + self.eps
+            )
         )
         loss = -20 * torch.log10(
             (torch.linalg.norm(scaled_pred, ord=2, dim=-1) + self.eps)
             / (
-                    torch.linalg.norm(target_centered - scaled_pred, ord=2, dim=-1)
-                    + self.eps
+                torch.linalg.norm(target_centered - scaled_pred, ord=2, dim=-1)
+                + self.eps
             )
         )
         return {"loss": loss.mean()}
@@ -48,7 +46,7 @@ class SpExPlusLoss(nn.Module):
         x.masked_fill_(mask, fill)
 
     def forward(
-            self, s1, s2, s3, target_audio, speaker_pred, target_audio_len, **batch
+        self, s1, s2, s3, target_audio, speaker_pred, target_audio_len, **batch
     ):
         self.mask(s1, target_audio_len)
         self.mask(s2, target_audio_len)
@@ -56,9 +54,9 @@ class SpExPlusLoss(nn.Module):
         self.mask(target_audio, target_audio_len)
 
         snr_loss = (
-                0.8 * self.si_sdr(s1, target_audio)["loss"]
-                + 0.1 * self.si_sdr(s2, target_audio)["loss"]
-                + 0.1 * self.si_sdr(s3, target_audio)["loss"]
+            0.8 * self.si_sdr(s1, target_audio)["loss"]
+            + 0.1 * self.si_sdr(s2, target_audio)["loss"]
+            + 0.1 * self.si_sdr(s3, target_audio)["loss"]
         )
         if self.training:
             ce_loss = self.ce_loss(speaker_pred, batch["speaker_target"])

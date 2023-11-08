@@ -26,7 +26,7 @@
       "num_workers": 5,
       "datasets": [
         {
-          "type": "CustomDirAudioDataset",
+          "type": "MixDataset",
           "args": {
             "cut_reference": false,
             "dir": "/kaggle/input/mixtures/mixtures_data/train_clean"
@@ -39,7 +39,7 @@
       "num_workers": 5,
       "datasets": [
         {
-          "type": "CustomDirAudioDataset",
+          "type": "MixDataset",
           "args": {
             "dir":  "/kaggle/input/mixtures/mixtures_data/test_clean"
           }
@@ -70,7 +70,7 @@
     }
   },
   "trainer": {
-    "epochs": 100,
+    "epochs": 150,
     "save_dir": "saved/",
     "save_period": 5,
     "verbosity": 2,
@@ -78,7 +78,7 @@
     "early_stop": 100,
     "visualize": "wandb",
     "wandbrun": "aboba",
-    "wandb_project": "tts_project",
+    "wandb_project": "tss_project",
     "grad_norm_clip": 10,
     "mixed_precision": true,
     "accumulation_steps": 4

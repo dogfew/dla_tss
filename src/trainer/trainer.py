@@ -37,7 +37,7 @@ class Trainer(BaseTrainer):
         audio,
         dataloaders,
         text_encoder,
-        log_step=200,  # how often WANDB will log
+        log_step=400,  # how often WANDB will log
         log_predictions_step_epoch=5,
         mixed_precision=False,
         lr_scheduler=None,
@@ -359,7 +359,9 @@ class Trainer(BaseTrainer):
             pred_audio__ = (
                 20 * pred_audio_.detach().type(torch.float32) / pred_audio_.norm()
             )
-            pred_audio__ = torch.nn.functional.pad(pred_audio__, (0, target_len - pred_audio__.shape[0]))
+            pred_audio__ = torch.nn.functional.pad(
+                pred_audio__, (0, target_len - pred_audio__.shape[0])
+            )
             rows[Path(path_).name] = {
                 "reference": wandb.Audio(
                     reference_audio_.squeeze().cpu()[:ref_len], sample_rate=sr

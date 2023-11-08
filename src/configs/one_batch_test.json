@@ -26,7 +26,7 @@
       "num_workers": 5,
       "datasets": [
         {
-          "type": "CustomDirAudioDataset",
+          "type": "MixDataset",
           "args": {
             "dir": "/home/vladimir/PycharmProjects/TTS/temp_datasets/one_batch"
           }
@@ -38,7 +38,7 @@
       "num_workers": 5,
       "datasets": [
         {
-          "type": "CustomDirAudioDataset",
+          "type": "MixDataset",
           "args": {
             "dir": "/home/vladimir/PycharmProjects/TTS/temp_datasets/one_batch"
           }

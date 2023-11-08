@@ -34,7 +34,7 @@
       "num_workers": 5,
       "datasets": [
         {
-          "type": "CustomDirAudioDataset",
+          "type": "MixDataset",
           "args": {
             "dir": "/home/vladimir/PycharmProjects/TTS/temp_datasets/train_clean"
           }
@@ -46,7 +46,7 @@
       "num_workers": 5,
       "datasets": [
         {
-          "type": "CustomDirAudioDataset",
+          "type": "MixDataset",
           "args": {
             "dir": "/home/vladimir/PycharmProjects/TTS/temp_datasets/test"
           }
@@ -81,7 +81,7 @@
     "monitor": "min val_loss",
     "early_stop": 100,
     "visualize": "wandb",
-    "wandb_project": "tts_project",
+    "wandb_project": "tss_project",
     "grad_norm_clip": 10,
     "mixed_precision": true,
     "accumulation_steps": 4

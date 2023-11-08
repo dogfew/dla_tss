@@ -50,7 +50,8 @@ def collate_fn(dataset_items: list[dict]) -> dict:
         result_batch["reference_spectrogram"] = result_batch[
             "reference_spectrogram"
         ].permute(0, 2, 1)
-    result_batch["speaker_target"] = torch.tensor(result_batch["speaker_target"])
+    if 'speaker_target' in result_batch:
+        result_batch["speaker_target"] = torch.tensor(result_batch["speaker_target"])
     return result_batch
 
 

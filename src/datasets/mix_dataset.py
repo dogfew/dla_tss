@@ -6,11 +6,10 @@ import torch.nn.functional as F
 logger = logging.getLogger(__name__)
 
 from pathlib import Path
-
 from src.utils.parse_config import ConfigParser
 
 
-class CustomDirAudioDataset:
+class MixDataset:
     def __init__(
         self,
         dir,
@@ -78,7 +77,7 @@ class CustomDirAudioDataset:
         return len(self._index)
 
 
-class CustomDirAudioDatasetVoiceFilter(CustomDirAudioDataset):
+class MixDatasetVoiceFilter(MixDataset):
     def __getitem__(self, ind):
         data_dict = self._index[ind]
         target_audio_wave, _ = torchaudio.load(data_dict["target_path"])
@@ -108,7 +107,7 @@ class CustomDirAudioDatasetVoiceFilter(CustomDirAudioDataset):
         return len(self._index)
 
 
-class TripletAudioDataset(CustomDirAudioDataset):
+class TripletAudioDataset(MixDataset):
     def __init__(self, use_phase=False, *args, **kwargs):
         self.idx = 0 if use_phase else 1
         super().__init__(*args, **kwargs)

@@ -1,7 +1,6 @@
-from src.datasets.custom_dir_audio_dataset import (
-    CustomDirAudioDataset,
+from src.datasets.mix_dataset import (
+    MixDataset,
     TripletAudioDataset,
 )
-from src.datasets.librispeech_dataset import LibrispeechDataset
-
-__all__ = ["LibrispeechDataset", "CustomDirAudioDataset", "TripletAudioDataset"]
+from src.datasets.custom_dir_dataset import CustomDirDataset
+__all__ = ["MixDataset", "TripletAudioDataset", "CustomDirDataset"]

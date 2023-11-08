@@ -2,6 +2,8 @@ import multiprocessing
 import os
 import glob
 from glob import glob
+from pathlib import Path
+
 import numpy as np
 import random
 import librosa
@@ -10,9 +12,21 @@ import pyloudnorm as pyln
 import argparse
 from concurrent.futures import ProcessPoolExecutor
 import warnings
-
+import os
+import shutil
+from speechbrain.utils.data_utils import download_file
+ROOT_PATH = Path(__file__).absolute().resolve().parent.parent.parent
 warnings.filterwarnings("ignore")
 
+URL_LINKS = {
+    "dev-clean": "https://www.openslr.org/resources/12/dev-clean.tar.gz",
+    "dev-other": "https://www.openslr.org/resources/12/dev-other.tar.gz",
+    "test-clean": "https://www.openslr.org/resources/12/test-clean.tar.gz",
+    "test-other": "https://www.openslr.org/resources/12/test-other.tar.gz",
+    "train-clean-100": "https://www.openslr.org/resources/12/train-clean-100.tar.gz",
+    "train-clean-360": "https://www.openslr.org/resources/12/train-clean-360.tar.gz",
+    "train-other-500": "https://www.openslr.org/resources/12/train-other-500.tar.gz",
+}
 
 def snr_mixer(clean, noise, snr):
     amp_noise = np.linalg.norm(clean) / 10 ** (snr / 20)
@@ -267,16 +281,20 @@ class MixtureGenerator:
                     print(f"Files Processed | {i + 1} out of {self.nfiles}")
 
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Make mixes.")
     parser.add_argument(
-        "--path", type=str, required=True, help="Path to the training data"
+        "--path", type=str, default=None, help="Path to the training data"
+    )
+    parser.add_argument(
+        '--part', type=str, default=None, help="Part of librispeech dataset"
     )
     parser.add_argument(
         "--path_mixtures",
         required=True,
         type=str,
-        help="Path to the mixtures for training",
+        help="Path for output",
     )
     parser.add_argument("--test", type=bool, default=False, help="Create test dataset")
     parser.add_argument(
@@ -289,6 +307,21 @@ if __name__ == "__main__":
         "--audio_len", type=int, default=3, help="Audio length in seconds"
     )
     args = parser.parse_args()
+    assert args.path is not None or args.part is not None
+    if args.path is None:
+        data_dir = ROOT_PATH / "data" / "datasets" / "librispeech"
+        data_dir.mkdir(exist_ok=True, parents=True)
+        if not os.path.exists(data_dir / args.part):
+            part = args.part
+            arch_path = data_dir / f"{part}.tar.gz"
+            print(f"Loading part {part}")
+            download_file(URL_LINKS[part], arch_path)
+            shutil.unpack_archive(arch_path, data_dir)
+            for fpath in (data_dir / "LibriSpeech").iterdir():
+                shutil.move(str(fpath), str(data_dir / fpath.name))
+            os.remove(str(arch_path))
+            shutil.rmtree(str(data_dir / "LibriSpeech"))
+        args.path = str(data_dir / args.part)
     speakers = [el.name for el in os.scandir(args.path) if int(el.name)][
         : args.num_speakers
     ]
