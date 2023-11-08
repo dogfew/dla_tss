@@ -103,8 +103,8 @@ class WanDBWriter:
         # self.wandb.log(
         #     *[{self._scalar_name(scalar_name + '1'): self.wandb.Image(image)} for image in images], step=self.step
         # )
-        #todo!
-        self.wandb.log({'images': self.wandb.Image(images)}, step=self.step)
+        # todo!
+        self.wandb.log({"images": self.wandb.Image(images)}, step=self.step)
 
     def add_pr_curve(self, scalar_name, scalar):
         raise NotImplementedError()

@@ -6,26 +6,32 @@ from math import pi, tau
 
 
 class VoiceFilterPhase(VoiceFilterBig):
-    def __init__(self,
-                 rnn_layers: int = 2,
-                 rnn_bidirectional: bool = True,
-                 hidden_size: int = 256,
-                 input_size: int = 256,
-                 embedder_phase_path: str = None,
-                 embedder_path: str = None,
-                 specnet_path: str = None,
-                 **kwargs):
-        super().__init__(rnn_layers=rnn_layers,
-                         rnn_bidirectional=rnn_bidirectional,
-                         hidden_size=hidden_size,
-                         input_size=input_size,
-                         embedder_path=embedder_path,
-                         **kwargs)
+    def __init__(
+        self,
+        rnn_layers: int = 2,
+        rnn_bidirectional: bool = True,
+        hidden_size: int = 256,
+        input_size: int = 256,
+        embedder_phase_path: str = None,
+        embedder_path: str = None,
+        specnet_path: str = None,
+        **kwargs
+    ):
+        super().__init__(
+            rnn_layers=rnn_layers,
+            rnn_bidirectional=rnn_bidirectional,
+            hidden_size=hidden_size,
+            input_size=input_size,
+            embedder_path=embedder_path,
+            **kwargs
+        )
         self.lstm = nn.GRU(
-            input_size * 9, input_size // 2,
+            input_size * 9,
+            input_size // 2,
             num_layers=rnn_layers,
             batch_first=True,
-            bidirectional=rnn_bidirectional)
+            bidirectional=rnn_bidirectional,
+        )
 
         self.conv = nn.Sequential(
             nn.ZeroPad2d((3, 3, 0, 0)),
@@ -64,14 +70,14 @@ class VoiceFilterPhase(VoiceFilterBig):
         self.trained_spec = False
         self.input_size = input_size
         if specnet_path is not None:
-            state_dict = torch.load(specnet_path)['state_dict']
+            state_dict = torch.load(specnet_path)["state_dict"]
             self.specnet = VoiceFilterBig()
             self.specnet.load_state_dict(state_dict)
             self.trained_spec = True
 
         self.trained_embedder_phase = False
         if embedder_phase_path is not None:
-            state_dict = torch.load(embedder_phase_path)['state_dict']
+            state_dict = torch.load(embedder_phase_path)["state_dict"]
             self.embedder_phase = ADvector()
             self.embedder_phase.load_state_dict(state_dict)
             self.trained_embedder_phase = True
@@ -79,10 +85,11 @@ class VoiceFilterPhase(VoiceFilterBig):
             self.embedder_phase = ADvector()
 
         if embedder_path is not None:
-            state_dict = torch.load(embedder_path)['state_dict']
+            state_dict = torch.load(embedder_path)["state_dict"]
             self.specnet.embedder = ADvector()
             self.specnet.embedder.load_state_dict(state_dict)
             self.specnet.trained_embedder = True
+
     #     self._initialize_weights()
     #
     # def _initialize_weights(self):
@@ -112,9 +119,11 @@ class VoiceFilterPhase(VoiceFilterBig):
         # # END VER 2
         pred_phase = soft_mask_phase + mix_phase
         pred_phase = torch.fmod(pred_phase + pi, tau) - pi
-        out = {'pred_phase': pred_phase,
-               'pred_mask': soft_mask_phase,
-               'embed_phase': dvec}
+        out = {
+            "pred_phase": pred_phase,
+            "pred_mask": soft_mask_phase,
+            "embed_phase": dvec,
+        }
         if self.trained_spec:
             with torch.no_grad():
                 out.update(self.specnet.forward(**batch))

@@ -27,32 +27,34 @@ class Trainer(BaseTrainer):
     """
 
     def __init__(
-            self,
-            model,
-            criterion,
-            metrics,
-            optimizer,
-            config,
-            device,
-            audio,
-            dataloaders,
-            text_encoder,
-            log_step=200,  # how often WANDB will log
-            log_predictions_step_epoch=5,
-            mixed_precision=False,
-            lr_scheduler=None,
-            len_epoch=None,
-            skip_oom=True,
+        self,
+        model,
+        criterion,
+        metrics,
+        optimizer,
+        config,
+        device,
+        audio,
+        dataloaders,
+        text_encoder,
+        log_step=200,  # how often WANDB will log
+        log_predictions_step_epoch=5,
+        mixed_precision=False,
+        lr_scheduler=None,
+        len_epoch=None,
+        skip_oom=True,
     ):
-        super().__init__(model, criterion, metrics, optimizer, config, device, lr_scheduler)
+        super().__init__(
+            model, criterion, metrics, optimizer, config, device, lr_scheduler
+        )
         self.skip_oom = skip_oom
         self.audio = audio
         self.train_dataloader = dataloaders["train"]
-        self.embeds_batches_to_log = config['trainer'].get('embeds_batches_to_log', 4)
-        self.emb_vis = config['trainer'].get('emb_vis', 'pca')
+        self.embeds_batches_to_log = config["trainer"].get("embeds_batches_to_log", 4)
+        self.emb_vis = config["trainer"].get("emb_vis", "pca")
         self.text_encoder = text_encoder
         self.config = config
-        self.accumulation_steps = config['trainer'].get('accumulation_steps', 1)
+        self.accumulation_steps = config["trainer"].get("accumulation_steps", 1)
         if len_epoch is None:
             self.len_epoch = len(self.train_dataloader)
         else:
@@ -66,12 +68,21 @@ class Trainer(BaseTrainer):
         self.log_predictions_step_epoch = log_predictions_step_epoch
         self.mixed_precision = mixed_precision
         self.train_metrics = MetricTracker(
-            "loss", "ce_loss", "snr_loss", "grad norm", *[m.name for m in self.metrics], writer=self.writer
+            "loss",
+            "ce_loss",
+            "snr_loss",
+            "grad norm",
+            *[m.name for m in self.metrics],
+            writer=self.writer,
         )
         self.evaluation_metrics = MetricTracker(
-            "loss", "ce_loss", "snr_loss", *[m.name for m in self.metrics], writer=self.writer
+            "loss",
+            "ce_loss",
+            "snr_loss",
+            *[m.name for m in self.metrics],
+            writer=self.writer,
         )
-        self.pesq = PESQ(16_000, 'wb')
+        self.pesq = PESQ(16_000, "wb")
         self.scaler = GradScaler(enabled=self.mixed_precision)
 
     @staticmethod
@@ -86,8 +97,12 @@ class Trainer(BaseTrainer):
             "target_spectrogram",
             "mix_spectrogram",
             "reference_spectrogram",
-            "anchor", "positive", "negative",
-            "mix_phase", "target_phase", "reference_phase"
+            "anchor",
+            "positive",
+            "negative",
+            "mix_phase",
+            "target_phase",
+            "reference_phase",
         ]:
             if tensor_for_gpu in batch:
                 batch[tensor_for_gpu] = batch[tensor_for_gpu].to(device)
@@ -110,7 +125,7 @@ class Trainer(BaseTrainer):
         self.train_metrics.reset()
         self.writer.add_scalar("epoch", epoch)
         for batch_idx, batch in enumerate(
-                tqdm(self.train_dataloader, desc="train", total=self.len_epoch)
+            tqdm(self.train_dataloader, desc="train", total=self.len_epoch)
         ):
             try:
                 batch = self.process_batch(
@@ -129,19 +144,20 @@ class Trainer(BaseTrainer):
                     continue
                 else:
                     raise e
-            self.train_metrics.update('loss', batch['loss'].detach().cpu().item())
+            self.train_metrics.update("loss", batch["loss"].detach().cpu().item())
             if not batch_idx % self.accumulation_steps:
                 self.train_metrics.update("grad norm", self.get_grad_norm())
             if batch_idx % self.log_step == 0:
                 self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
                 self.logger.debug(
                     "Train Epoch: {} {} Loss: {:.6f}".format(
-                        epoch, self._progress(batch_idx), self.train_metrics.avg('loss')
+                        epoch, self._progress(batch_idx), self.train_metrics.avg("loss")
                     )
                 )
                 # AttributeError: 'ReduceLROnPlateau' object has no attribute 'get_last_lr'
                 self.writer.add_scalar(
-                    "learning rate", self.optimizer.state_dict()['param_groups'][0]['lr']
+                    "learning rate",
+                    self.optimizer.state_dict()["param_groups"][0]["lr"],
                 )
                 self._log_scalars(self.train_metrics)
                 # we don't want to reset train metrics at the start of every epoch
@@ -149,13 +165,13 @@ class Trainer(BaseTrainer):
                 last_train_metrics = self.train_metrics.result()
                 self.train_metrics.reset()
                 if epoch % self.log_predictions_step_epoch == 0:
-                    if 'anchor' not in batch:
+                    if "anchor" not in batch:
                         self._log_predictions(**batch, is_train=True)
                     else:
                         self._log_embeddings(**batch)
-                    if 'pred_spectrogram' in batch:
+                    if "pred_spectrogram" in batch:
                         self._log_spectrogram(batch)
-                    if 'pred_phase' in batch:
+                    if "pred_phase" in batch:
                         self._log_spectrogram(batch, phase=True)
             if batch_idx >= self.len_epoch:
                 break
@@ -164,11 +180,13 @@ class Trainer(BaseTrainer):
             val_log = self._evaluation_epoch(epoch, part, dataloader)
             log.update(**{f"{part}_{name}": value for name, value in val_log.items()})
         if self.lr_scheduler is not None:
-            self.lr_scheduler.step(metrics=self.train_metrics.avg('loss'))
+            self.lr_scheduler.step(metrics=self.train_metrics.avg("loss"))
             # self.lr_scheduler.step()
         return log
 
-    def process_batch(self, batch, batch_idx: int, is_train: bool, metrics: MetricTracker):
+    def process_batch(
+        self, batch, batch_idx: int, is_train: bool, metrics: MetricTracker
+    ):
         if is_train and not batch_idx % self.accumulation_steps:
             self.optimizer.zero_grad()
         batch = self.move_batch_to_device(batch, self.device)
@@ -176,22 +194,17 @@ class Trainer(BaseTrainer):
             outputs = self.model(**batch)
             if type(outputs) is dict:
                 batch.update(outputs)
-            if 's1' in batch:
-                batch['pred_audio'] = batch['s1']
-                # with torch.no_grad():
-                #     batch['pred_audio'] = []
-                #     for i in batch['s1'].detach():
-                #         i = i.unsqueeze(0)
-                #         batch['pred_audio'].append(20 * (i / i.norm()).detach().cpu())
-                #     batch['pred_audio'] = torch.stack(batch['pred_audio'])
-                #     print(batch['pred_audio'].shape)
-            elif 'pred_audio' not in batch and ('pred_spectrogram' in batch or 'pred_phase' in batch):
-                spectrogram = batch.get('pred_spectrogram', batch['mix_spectrogram'])
-                phase = batch.get('pred_phase', batch['mix_phase'])
+            if "s1" in batch:
+                batch["pred_audio"] = batch["s1"]
+            elif "pred_audio" not in batch and (
+                "pred_spectrogram" in batch or "pred_phase" in batch
+            ):
+                spectrogram = batch.get("pred_spectrogram", batch["mix_spectrogram"])
+                phase = batch.get("pred_phase", batch["mix_phase"])
                 waveform_reconstructed = torch.stack(
                     [self.audio.spec2wav(s, ph) for s, ph in zip(spectrogram, phase)]
-                    )
-                batch['pred_audio'] = waveform_reconstructed
+                )
+                batch["pred_audio"] = waveform_reconstructed
             criterion = self.criterion(**batch)
             batch.update(criterion)
 
@@ -202,9 +215,9 @@ class Trainer(BaseTrainer):
                 self.scaler.step(self.optimizer)
                 self.scaler.update()
         metrics.update("loss", batch["loss"].item())
-        if 'ce_loss' in batch and "snr_loss" in batch:
-            metrics.update('ce_loss', batch['ce_loss'].detach().cpu().item())
-            metrics.update('snr_loss', batch['snr_loss'].detach().cpu().item())
+        if "ce_loss" in batch and "snr_loss" in batch:
+            metrics.update("ce_loss", batch["ce_loss"].detach().cpu().item())
+            metrics.update("snr_loss", batch["snr_loss"].detach().cpu().item())
 
         for met in self.metrics:
             metrics.update(met.name, met(**batch))
@@ -222,9 +235,9 @@ class Trainer(BaseTrainer):
         self.evaluation_metrics.reset()
         with torch.no_grad():
             for batch_idx, batch in tqdm(
-                    enumerate(dataloader),
-                    desc=part,
-                    total=len(dataloader),
+                enumerate(dataloader),
+                desc=part,
+                total=len(dataloader),
             ):
                 try:
                     batch = self.process_batch(
@@ -235,7 +248,9 @@ class Trainer(BaseTrainer):
                     )
                 except RuntimeError as e:
                     if "out of memory" in str(e) and self.skip_oom:
-                        self.logger.warning("OOM on batch in EVALUATION!!! Skipping batch.")
+                        self.logger.warning(
+                            "OOM on batch in EVALUATION!!! Skipping batch."
+                        )
                         torch.cuda.empty_cache()
                         continue
                     else:
@@ -243,7 +258,7 @@ class Trainer(BaseTrainer):
             self.writer.set_step(epoch * self.len_epoch, part)
             self._log_scalars(self.evaluation_metrics)
 
-            if 'spectrogram_pred' in batch:
+            if "spectrogram_pred" in batch:
                 self._log_spectrogram(batch)
             self._log_predictions(**batch)
         for name, p in self.model.named_parameters():
@@ -261,26 +276,22 @@ class Trainer(BaseTrainer):
         return base.format(current, total, 100.0 * current / total)
 
     @torch.no_grad()
-    def _log_embeddings(
-            self,
-            **batch
-    ):
-
+    def _log_embeddings(self, **batch):
         if self.writer is None:
             return
         embeddings = []
         labels = []
         with torch.no_grad():
             for i, batch in enumerate(self.train_dataloader):
-                anchors = batch['anchor'].cuda()
+                anchors = batch["anchor"].cuda()
                 anchor_embedding = self.model.make_embedding(anchors)
                 embeddings.append(anchor_embedding)
-                labels.append(batch['speaker_target'])
+                labels.append(batch["speaker_target"])
                 if i > self.embeds_batches_to_log:
                     break
         embeddings = torch.cat(embeddings, dim=0)
         labels = np.concatenate(labels, axis=0)
-        if self.emb_vis.lower() == 'tsne':
+        if self.emb_vis.lower() == "tsne":
             embeddings = embeddings.cpu().numpy()
             tsne = TSNE(n_components=2, random_state=0)
             embeddings_2d = tsne.fit_transform(embeddings)
@@ -301,15 +312,18 @@ class Trainer(BaseTrainer):
 
     @torch.no_grad()
     def _log_predictions(
-            self,
-            pred_audio,
-            target_audio,
-            reference_audio,
-            mix_audio,
-            target_audio_path,
-            examples_to_log=10,
-            is_train=False,
-            **kwargs
+        self,
+        pred_audio,
+        target_audio,
+        reference_audio,
+        mix_audio,
+        target_audio_path,
+        target_audio_len,
+        reference_audio_len,
+        mix_audio_len,
+        examples_to_log=10,
+        is_train=False,
+        **kwargs,
     ):
         if self.writer is None:
             return
@@ -318,7 +332,10 @@ class Trainer(BaseTrainer):
             target_audio,
             reference_audio,
             mix_audio,
-            target_audio_path
+            target_audio_path,
+            target_audio_len,
+            reference_audio_len,
+            mix_audio_len,
         ]
         tuples = [i[:examples_to_log] for i in tuples]
         tuples = list(zip(*tuples))
@@ -326,28 +343,39 @@ class Trainer(BaseTrainer):
         shuffle(tuples)
         rows = {}
         for (
-                pred_audio_,
-                target_audio_,
-                reference_audio_,
-                mixed_audio_,
-                path_
+            pred_audio_,
+            target_audio_,
+            reference_audio_,
+            mixed_audio_,
+            path_,
+            target_len,
+            ref_len,
+            mix_len,
         ) in tuples:
+            target_len = target_len.item()
+            ref_len = ref_len.item()
+            mix_len = mix_len.item()
+            pred_audio__ = (
+                20 * pred_audio_.detach().type(torch.float32) / pred_audio_.norm()
+            )
+            pred_audio__ = torch.nn.functional.pad(pred_audio__, (0, target_len - pred_audio__.shape[0]))
             rows[Path(path_).name] = {
                 "reference": wandb.Audio(
-                    reference_audio_.squeeze().cpu(), sample_rate=sr
+                    reference_audio_.squeeze().cpu()[:ref_len], sample_rate=sr
                 ),
                 "mixed": wandb.Audio(
-                    mixed_audio_.squeeze().cpu(), sample_rate=sr
+                    mixed_audio_.squeeze().cpu()[:mix_len], sample_rate=sr
                 ),
                 "predicted": wandb.Audio(
-                    pred_audio_.detach().type(torch.float32).cpu(),
-                    sample_rate=sr
+                    pred_audio__.cpu()[:target_len], sample_rate=sr
                 ),
                 "target": wandb.Audio(
-                    target_audio_.squeeze().cpu(), sample_rate=sr
+                    target_audio_.squeeze().cpu()[:target_len], sample_rate=sr
                 ),
-                "sisdr": si_sdr(pred_audio_, target_audio_),
-                "pesq": self.pesq(pred_audio_, target_audio_)
+                "sisdr": si_sdr(pred_audio__[:target_len], target_audio_[:target_len]),
+                "pesq": self.pesq(
+                    pred_audio__[:target_len], target_audio_[:target_len]
+                ),
             }
         self.writer.add_table(
             "predictions", pd.DataFrame.from_dict(rows, orient="index")
@@ -356,19 +384,22 @@ class Trainer(BaseTrainer):
     @torch.no_grad()
     def _log_spectrogram(self, batch, phase=False):
         idx = -1
-        name = 'phase' if phase else 'spectrogram'
-        spectrogram_mix = batch[f'mix_{name}'][idx].detach().cpu()
-        spectrogram_pred = batch[f'pred_{name}'][idx].detach().cpu()
-        spectrogram_target = batch[f'target_{name}'][idx].detach().cpu()
-        self.writer.add_image(f"{name} target",
-                              ToTensor()(PIL.Image.open(plot_spectrogram_to_buf(spectrogram_target)))
-                              )
-        self.writer.add_image(f"{name} pred",
-                              ToTensor()(PIL.Image.open(plot_spectrogram_to_buf(spectrogram_pred)))
-                              )
-        self.writer.add_image(f"{name} mix",
-                              ToTensor()(PIL.Image.open(plot_spectrogram_to_buf(spectrogram_mix)))
-                              )
+        name = "phase" if phase else "spectrogram"
+        spectrogram_mix = batch[f"mix_{name}"][idx].detach().cpu()
+        spectrogram_pred = batch[f"pred_{name}"][idx].detach().cpu()
+        spectrogram_target = batch[f"target_{name}"][idx].detach().cpu()
+        self.writer.add_image(
+            f"{name} target",
+            ToTensor()(PIL.Image.open(plot_spectrogram_to_buf(spectrogram_target))),
+        )
+        self.writer.add_image(
+            f"{name} pred",
+            ToTensor()(PIL.Image.open(plot_spectrogram_to_buf(spectrogram_pred))),
+        )
+        self.writer.add_image(
+            f"{name} mix",
+            ToTensor()(PIL.Image.open(plot_spectrogram_to_buf(spectrogram_mix))),
+        )
 
     @torch.no_grad()
     def get_grad_norm(self, norm_type=2):

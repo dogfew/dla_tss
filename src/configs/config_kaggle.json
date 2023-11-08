@@ -22,35 +22,26 @@
   },
   "data": {
     "train": {
-      "batch_sampler": {
-        "type": "GroupLengthBatchSampler",
-        "args": {
-          "batch_size": 8
-        }
-      },
+      "batch_size": 32,
       "num_workers": 5,
       "datasets": [
         {
           "type": "CustomDirAudioDataset",
           "args": {
-            "dir": "/home/vladimir/PycharmProjects/TTS/temp_datasets/one_batch"
+            "cut_reference": false,
+            "dir": "/kaggle/input/mixtures/mixtures_data/train_clean"
           }
         }
       ]
     },
     "test": {
-      "batch_sampler": {
-        "type": "GroupLengthBatchSampler",
-        "args": {
-          "batch_size": 8
-        }
-      },
+      "batch_size": 4,
       "num_workers": 5,
       "datasets": [
         {
           "type": "CustomDirAudioDataset",
           "args": {
-            "dir": "/home/vladimir/PycharmProjects/TTS/mixtures_data/test_clean"
+            "dir":  "/kaggle/input/mixtures/mixtures_data/test_clean"
           }
         }
       ]
@@ -60,7 +51,7 @@
     "type": "AdamW",
     "args": {
       "lr": 1e-3,
-      "weight_decay": 1e-5
+      "weight_decay": 4e-6
     }
   },
   "loss": {
@@ -72,12 +63,12 @@
   "lr_scheduler": {
     "type": "ReduceLROnPlateau",
     "args": {
-      "factor": 0.7,
+      "factor": 0.5,
       "patience": 2
     }
   },
   "trainer": {
-    "epochs": 150,
+    "epochs": 100,
     "save_dir": "saved/",
     "save_period": 10,
     "verbosity": 2,
@@ -85,10 +76,9 @@
     "early_stop": 100,
     "visualize": "wandb",
     "wandbrun": "aboba",
-    "wandb_project": "none",
+    "wandb_project": "tts_project",
     "grad_norm_clip": 10,
     "mixed_precision": true,
-    "len_epoch": 20,
-    "accumulation_steps": 1
+    "accumulation_steps": 4
   }
 }

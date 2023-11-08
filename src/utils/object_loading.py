@@ -8,8 +8,7 @@ from src.collate_fn.collate import collate_fn, dvec_collate_fn
 from src.utils.parse_config import ConfigParser
 
 
-def get_dataloaders(configs: ConfigParser, audio
-                    ):
+def get_dataloaders(configs: ConfigParser, audio):
     dataloaders = {}
     for split, params in configs["data"].items():
         num_workers = params.get("num_workers", 1)
@@ -62,12 +61,14 @@ def get_dataloaders(configs: ConfigParser, audio
         dataloader = DataLoader(
             dataset,
             batch_size=bs,
-            collate_fn=collate_fn if 'vector' not in configs['arch']['type'] else dvec_collate_fn,
+            collate_fn=collate_fn
+            if "vector" not in configs["arch"]["type"]
+            else dvec_collate_fn,
             shuffle=shuffle,
             pin_memory=True,
             num_workers=num_workers,
             batch_sampler=batch_sampler,
-            drop_last=drop_last,
+            drop_last=drop_last if batch_sampler is None else False,
         )
         dataloaders[split] = dataloader
     return dataloaders

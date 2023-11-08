@@ -7,16 +7,17 @@ from src.model.voicefilter import ADvector
 
 class ADvectorComplex(nn.Module):
     def __init__(
-            self,
-            input_size=256,
-            hidden_size=256,
-            num_layers=1,
+        self,
+        input_size=256,
+        hidden_size=256,
+        num_layers=1,
     ):
         super().__init__()
-        self.rnn = nn.RNN(input_size, hidden_size, num_layers, batch_first=True, dtype=torch.complex64)
+        self.rnn = nn.RNN(
+            input_size, hidden_size, num_layers, batch_first=True, dtype=torch.complex64
+        )
         self.embedding = nn.Sequential(
-            nn.Linear(hidden_size, input_size, dtype=torch.complex64),
-            nn.Tanh()
+            nn.Linear(hidden_size, input_size, dtype=torch.complex64), nn.Tanh()
         )
         self.linear = nn.Linear(input_size, 1, dtype=torch.complex64)
 
@@ -31,9 +32,11 @@ class ADvectorComplex(nn.Module):
         anchor_embedding = self.make_embedding(anchor)
         positive_embedding = self.make_embedding(positive)
         negative_embedding = self.make_embedding(negative)
-        return {'anchor_embedding': anchor_embedding,
-                'positive_embedding': positive_embedding,
-                'negative_embedding': negative_embedding}
+        return {
+            "anchor_embedding": anchor_embedding,
+            "positive_embedding": positive_embedding,
+            "negative_embedding": negative_embedding,
+        }
 
 
 class ComplexReLU(nn.Module):
@@ -41,9 +44,14 @@ class ComplexReLU(nn.Module):
         return F.relu(inp.real).type(torch.complex64) + 1j * F.relu(inp.imag).type(
             torch.complex64
         )
+
+
 def apply_complex(fr, fi, input, dtype=torch.complex64):
-    return (fr(input.real)-fi(input.imag)).type(dtype) \
-        + 1j*(fr(input.imag)+fi(input.real)).type(dtype)
+    return (fr(input.real) - fi(input.imag)).type(dtype) + 1j * (
+        fr(input.imag) + fi(input.real)
+    ).type(dtype)
+
+
 class ComplexLinear(nn.Module):
     def __init__(self, in_features, out_features):
         super().__init__()
@@ -53,14 +61,17 @@ class ComplexLinear(nn.Module):
     def forward(self, inp):
         return apply_complex(self.fc_r, self.fc_i, inp)
 
+
 class VoiceFilterComplex(nn.Module):
-    def __init__(self,
-                 rnn_layers: int = 1,
-                 rnn_bidirectional: bool = True,
-                 hidden_size: int = 256,
-                 input_size: int = 256,
-                 embedder_path: str = None,
-                 **kwargs):
+    def __init__(
+        self,
+        rnn_layers: int = 1,
+        rnn_bidirectional: bool = True,
+        hidden_size: int = 256,
+        input_size: int = 256,
+        embedder_path: str = None,
+        **kwargs
+    ):
         super().__init__()
         self.trained_embedder = False
         # if embedder_path is not None:
@@ -69,13 +80,17 @@ class VoiceFilterComplex(nn.Module):
         #     self.embedder.load_state_dict(state_dict)
         #     self.trained_embedder = True
         # else:
-        self.embedder = nn.RNN(input_size, hidden_size, 2, batch_first=True, dtype=torch.complex64)
+        self.embedder = nn.RNN(
+            input_size, hidden_size, 2, batch_first=True, dtype=torch.complex64
+        )
         self.lstm = nn.RNN(
             input_size * 2,
             hidden_size,
             num_layers=rnn_layers,
             batch_first=True,
-            bidirectional=rnn_bidirectional, dtype=torch.complex64)
+            bidirectional=rnn_bidirectional,
+            dtype=torch.complex64,
+        )
 
         self.conv = nn.Sequential(
             nn.Conv1d(input_size, hidden_size, kernel_size=1, dtype=torch.complex64),
@@ -86,7 +101,7 @@ class VoiceFilterComplex(nn.Module):
             ComplexLinear(hidden_size * (2 if rnn_bidirectional else 1), hidden_size),
             # ComplexReLU(),
             ComplexLinear(hidden_size, input_size),
-            nn.Sigmoid()
+            nn.Sigmoid(),
         )
 
     def forward(self, mix_spectrogram, reference_spectrogram, **batch):
@@ -106,6 +121,8 @@ class VoiceFilterComplex(nn.Module):
         x = torch.cat((x, dvec), dim=1)  # B x T x C
         x, _ = self.lstm(x.transpose(1, 2))
         soft_mask = self.fc(x).transpose(1, 2)  # B x C x T
-        return {'pred_spectrogram': soft_mask * mix_spectrogram,
-                'pred_mask': soft_mask,
-                'embed': dvec}
+        return {
+            "pred_spectrogram": soft_mask * mix_spectrogram,
+            "pred_mask": soft_mask,
+            "embed": dvec,
+        }

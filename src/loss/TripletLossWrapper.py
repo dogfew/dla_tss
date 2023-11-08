@@ -10,6 +10,8 @@ class TripletLossWrapper(TripletMarginWithDistanceLoss):
     def forward(
         self, anchor_embedding, positive_embedding, negative_embedding, **batch
     ) -> dict:
-        return {'loss': super().forward(
-            anchor_embedding, positive_embedding, negative_embedding
-        )}
+        return {
+            "loss": super().forward(
+                anchor_embedding, positive_embedding, negative_embedding
+            )
+        }

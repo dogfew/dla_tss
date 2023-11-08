@@ -9,7 +9,7 @@ else
 fi
 
 if [ ! -d "mixtures_data/test_clean" ]; then
-    python $PYTHON_SCRIPT --path data/datasets/librispeech/test-clean --path_mixtures mixtures_data/test_clean
+    python $PYTHON_SCRIPT --path data/datasets/librispeech/test-clean --path_mixtures mixtures_data/test_clean --test True
 else
     echo "Directory mixtures_data/test_clean already exists. Skipping..."
 fi

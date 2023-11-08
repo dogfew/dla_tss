@@ -110,6 +110,7 @@ temp_datasets/
 bestmodel/
 test_data/
 mixtures_data/
+mixtures_data.zip/
 # editor, os cache directory
 .vscode/
 .idea/

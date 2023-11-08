@@ -2,6 +2,7 @@ import logging
 import torchaudio
 import random
 import torch.nn.functional as F
+
 logger = logging.getLogger(__name__)
 
 from pathlib import Path
@@ -10,7 +11,15 @@ from src.utils.parse_config import ConfigParser
 
 
 class CustomDirAudioDataset:
-    def __init__(self, dir, config_parser: ConfigParser, audio, cut_reference=None, *args, **kwargs):
+    def __init__(
+        self,
+        dir,
+        config_parser: ConfigParser,
+        audio,
+        cut_reference=None,
+        *args,
+        **kwargs,
+    ):
         self.config_parser = config_parser
         self.speaker_lst = []
         self.cut_reference = cut_reference
@@ -18,19 +27,21 @@ class CustomDirAudioDataset:
         self.audio = audio
         data = []
         for audio_file in Path(dir).rglob("*-target.[mwflac4]*"):
-            base_key = audio_file.stem[:-len("-target")]
+            base_key = audio_file.stem[: -len("-target")]
             suffix = audio_file.suffix
             mixed_file = audio_file.parent / f"{base_key}-mixed{suffix}"
             ref_file = audio_file.parent / f"{base_key}-ref{suffix}"
             if mixed_file.exists() and ref_file.exists():
                 speaker_target, speaker_noise, *_ = base_key.split("_")
-                data.append({
-                    "speaker_target": speaker_target,
-                    "speaker_noise": speaker_noise,
-                    "target_path": str(audio_file),
-                    "mix_path": str(mixed_file),
-                    "reference_path": str(ref_file)
-                })
+                data.append(
+                    {
+                        "speaker_target": speaker_target,
+                        "speaker_noise": speaker_noise,
+                        "target_path": str(audio_file),
+                        "mix_path": str(mixed_file),
+                        "reference_path": str(ref_file),
+                    }
+                )
                 if speaker_target not in self.speaker_audio_dict:
                     self.speaker_lst.append(speaker_target)
                     self.speaker_audio_dict[speaker_target] = []
@@ -50,9 +61,11 @@ class CustomDirAudioDataset:
                 reference_audio_wave = reference_audio_wave[:, :target_length]
             elif current_length < target_length:
                 padding = target_length - current_length
-                reference_audio_wave = F.pad(reference_audio_wave, (0, padding), "constant", 0)
+                reference_audio_wave = F.pad(
+                    reference_audio_wave, (0, padding), "constant", 0
+                )
 
-        speaker_target = self.speaker_lst.index(data_dict['speaker_target'])
+        speaker_target = self.speaker_lst.index(data_dict["speaker_target"])
         return {
             "speaker_target": speaker_target,
             "target_audio": target_audio_wave,
@@ -71,10 +84,12 @@ class CustomDirAudioDatasetVoiceFilter(CustomDirAudioDataset):
         target_audio_wave, _ = torchaudio.load(data_dict["target_path"])
         mix_audio_wave, _ = torchaudio.load(data_dict["mix_path"])
         reference_audio_wave, _ = torchaudio.load(data_dict["reference_path"])
-        speaker_target = self.speaker_lst.index(data_dict['speaker_target'])
+        speaker_target = self.speaker_lst.index(data_dict["speaker_target"])
         target_audio_spec, target_phase = self.audio.wav2spec(target_audio_wave)
         mix_audio_spec, mix_phase = self.audio.wav2spec(mix_audio_wave)
-        reference_audio_spec, reference_phase = self.audio.wav2spec(reference_audio_wave)
+        reference_audio_spec, reference_phase = self.audio.wav2spec(
+            reference_audio_wave
+        )
         return {
             "speaker_target": speaker_target,
             "target_audio": target_audio_wave,
@@ -111,17 +126,19 @@ class TripletAudioDataset(CustomDirAudioDataset):
 
         anchor_audio_spec = self.audio.wav2spec(anchor_audio_wave)[self.idx]
         positive_audio_spec = self.audio.wav2spec(positive_audio_wave)[self.idx]
-        negative_speaker = random.choice([s for s in self.speaker_lst if s != anchor_speaker])
+        negative_speaker = random.choice(
+            [s for s in self.speaker_lst if s != anchor_speaker]
+        )
         negative_audios = self.speaker_audio_dict[negative_speaker]
 
         negative_audio_path = random.choice(negative_audios)
         negative_audio_wave, _ = torchaudio.load(negative_audio_path)
         negative_audio_spec = self.audio.wav2spec(negative_audio_wave)[self.idx]
         return {
-            'anchor': anchor_audio_spec,
-            'positive': positive_audio_spec,
-            'negative': negative_audio_spec,
-            'speaker_target': int(anchor_speaker)
+            "anchor": anchor_audio_spec,
+            "positive": positive_audio_spec,
+            "negative": negative_audio_spec,
+            "speaker_target": int(anchor_speaker),
         }
 
     def __len__(self):

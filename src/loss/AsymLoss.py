@@ -9,9 +9,10 @@ class AsymmetricL2Loss(nn.Module):
 
     def forward(self, pred_spectrogram, target_spectrogram, **batch):
         delta_sq = (target_spectrogram - pred_spectrogram) ** 2
-        loss = torch.where(target_spectrogram > pred_spectrogram,
-                           delta_sq, self.alpha * delta_sq)
-        return {'loss': torch.mean(loss)}
+        loss = torch.where(
+            target_spectrogram > pred_spectrogram, delta_sq, self.alpha * delta_sq
+        )
+        return {"loss": torch.mean(loss)}
 
 
 class AsymmetricL2LossPhase(AsymmetricL2Loss):

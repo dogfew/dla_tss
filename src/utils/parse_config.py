@@ -136,7 +136,6 @@ class ConfigParser:
         logger.setLevel(self.log_levels[verbosity])
         return logger
 
-
     # setting read-only attributes
     @property
     def config(self):

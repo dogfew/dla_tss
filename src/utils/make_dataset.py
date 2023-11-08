@@ -39,17 +39,17 @@ def cut_audios(s1, s2, sec, sr):
 
     segment = 0
     while (segment + 1) * cut_len < len1 and (segment + 1) * cut_len < len2:
-        s1_cut.append(s1[segment * cut_len:(segment + 1) * cut_len])
-        s2_cut.append(s2[segment * cut_len:(segment + 1) * cut_len])
+        s1_cut.append(s1[segment * cut_len : (segment + 1) * cut_len])
+        s2_cut.append(s2[segment * cut_len : (segment + 1) * cut_len])
 
         segment += 1
 
     return s1_cut, s2_cut
 
 
-def fix_length(s1, s2, min_or_max='max'):
+def fix_length(s1, s2, min_or_max="max"):
     # Fix length
-    if min_or_max == 'min':
+    if min_or_max == "min":
         utt_len = np.minimum(len(s1), len(s2))
         s1 = s1[:utt_len]
         s2 = s2[:utt_len]
@@ -70,9 +70,9 @@ def create_mix(idx, triplet, snr_levels, out_dir, test=False, sr=16000, **kwargs
     target_id = triplet["target_id"]
     noise_id = triplet["noise_id"]
 
-    s1, _ = sf.read(os.path.join('', s1_path))
-    s2, _ = sf.read(os.path.join('', s2_path))
-    ref, _ = sf.read(os.path.join('', ref_path))
+    s1, _ = sf.read(os.path.join("", s1_path))
+    s2, _ = sf.read(os.path.join("", s2_path))
+    ref, _ = sf.read(os.path.join("", ref_path))
 
     meter = pyln.Meter(sr)  # create BS.1770 meter
 
@@ -107,9 +107,15 @@ def create_mix(idx, triplet, snr_levels, out_dir, test=False, sr=16000, **kwargs
         os.makedirs(speaker_dir)
 
     # Изменяем пути для сохранения файлов
-    path_mix = os.path.join(speaker_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-mixed.wav")
-    path_target = os.path.join(speaker_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-target.wav")
-    path_ref = os.path.join(speaker_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-ref.wav")
+    path_mix = os.path.join(
+        speaker_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-mixed.wav"
+    )
+    path_target = os.path.join(
+        speaker_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-target.wav"
+    )
+    path_ref = os.path.join(
+        speaker_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-ref.wav"
+    )
     snr = np.random.choice(snr_levels, 1).item()
 
     if not test:
@@ -131,7 +137,7 @@ def create_mix(idx, triplet, snr_levels, out_dir, test=False, sr=16000, **kwargs
             sf.write(path_target_i, s1_cut[i], sr)
             sf.write(path_ref_i, ref, sr)
     else:
-        s1, s2 = fix_length(s1, s2, 'max')
+        s1, s2 = fix_length(s1, s2, "max")
         mix = snr_mixer(s1, s2, snr)
         louds1 = meter.integrated_loudness(s1)
         s1 = pyln.normalize.loudness(s1, louds1, -23.0)
@@ -156,14 +162,22 @@ class LibriSpeechSpeakerFiles:
         chapterDirs = os.scandir(speakerDir)
         files = []
         for chapterDir in chapterDirs:
-            files = files + [file for file in
-                             glob(os.path.join(speakerDir, chapterDir.name) + "/" + self.audioTemplate)]
+            files = files + [
+                file
+                for file in glob(
+                    os.path.join(speakerDir, chapterDir.name) + "/" + self.audioTemplate
+                )
+            ]
         return files
 
 
 class MixtureGenerator:
-    def __init__(self, speakers_files, out_folder, nfiles=5000, test=False, randomState=42):
-        self.speakers_files = speakers_files  # list of SpeakerFiles for every speaker_id
+    def __init__(
+        self, speakers_files, out_folder, nfiles=5000, test=False, randomState=42
+    ):
+        self.speakers_files = (
+            speakers_files  # list of SpeakerFiles for every speaker_id
+        )
         self.nfiles = nfiles
         self.randomState = randomState
         self.out_folder = out_folder
@@ -175,7 +189,13 @@ class MixtureGenerator:
 
     def generate_triplets(self):
         i = 0
-        all_triplets = {"reference": [], "target": [], "noise": [], "target_id": [], "noise_id": []}
+        all_triplets = {
+            "reference": [],
+            "target": [],
+            "noise": [],
+            "target_id": [],
+            "noise_id": [],
+        }
         while i < self.nfiles:
             spk1, spk2 = random.sample(self.speakers_files, 2)
 
@@ -201,9 +221,13 @@ class MixtureGenerator:
         reference_samples = random.sample(target_speaker.files, k=number_of_triplets)
         noise_samples = random.sample(noise_speaker.files, k=number_of_triplets)
 
-        triplets = {"reference": [], "target": [], "noise": [],
-                    "target_id": [target_speaker.id] * number_of_triplets,
-                    "noise_id": [noise_speaker.id] * number_of_triplets}
+        triplets = {
+            "reference": [],
+            "target": [],
+            "noise": [],
+            "target_id": [target_speaker.id] * number_of_triplets,
+            "noise_id": [noise_speaker.id] * number_of_triplets,
+        }
         triplets["target"] += target_samples
         triplets["reference"] += reference_samples
         triplets["noise"] += noise_samples
@@ -211,22 +235,31 @@ class MixtureGenerator:
         return triplets
 
     def generate_mixes(self, snr_levels=[0], num_workers=10, update_steps=10, **kwargs):
-
         triplets = self.generate_triplets()
 
         with ProcessPoolExecutor(max_workers=num_workers) as pool:
             futures = []
 
             for i in range(self.nfiles):
-                triplet = {"reference": triplets["reference"][i],
-                           "target": triplets["target"][i],
-                           "noise": triplets["noise"][i],
-                           "target_id": triplets["target_id"][i],
-                           "noise_id": triplets["noise_id"][i]}
+                triplet = {
+                    "reference": triplets["reference"][i],
+                    "target": triplets["target"][i],
+                    "noise": triplets["noise"][i],
+                    "target_id": triplets["target_id"][i],
+                    "noise_id": triplets["noise_id"][i],
+                }
 
-                futures.append(pool.submit(create_mix, i, triplet,
-                                           snr_levels, self.out_folder,
-                                           test=self.test, **kwargs))
+                futures.append(
+                    pool.submit(
+                        create_mix,
+                        i,
+                        triplet,
+                        snr_levels,
+                        self.out_folder,
+                        test=self.test,
+                        **kwargs,
+                    )
+                )
 
             for i, future in enumerate(futures):
                 future.result()
@@ -234,21 +267,42 @@ class MixtureGenerator:
                     print(f"Files Processed | {i + 1} out of {self.nfiles}")
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Make mixes.')
-    parser.add_argument('--path', type=str, required=True, help='Path to the training data')
-    parser.add_argument('--path_mixtures', required=True, type=str, help='Path to the mixtures for training')
-    parser.add_argument('--test', action='store_true', default=False, help='Create test dataset')
-    parser.add_argument('--nfiles', type=int, default=1000, help='Number of files to process')
-    parser.add_argument('--num_speakers', type=int, default=-1, help='Number of speakers to process')
-    parser.add_argument('--audio_len', type=int, default=3, help='Audio length in seconds')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Make mixes.")
+    parser.add_argument(
+        "--path", type=str, required=True, help="Path to the training data"
+    )
+    parser.add_argument(
+        "--path_mixtures",
+        required=True,
+        type=str,
+        help="Path to the mixtures for training",
+    )
+    parser.add_argument("--test", type=bool, default=False, help="Create test dataset")
+    parser.add_argument(
+        "--nfiles", type=int, default=1000, help="Number of files to process"
+    )
+    parser.add_argument(
+        "--num_speakers", type=int, default=-1, help="Number of speakers to process"
+    )
+    parser.add_argument(
+        "--audio_len", type=int, default=3, help="Audio length in seconds"
+    )
     args = parser.parse_args()
-    speakers = [el.name for el in os.scandir(args.path) if int(el.name)][:args.num_speakers]
-    speakers_files = [LibriSpeechSpeakerFiles(i, args.path, audioTemplate="*.flac") for i in speakers]
-    mixer = MixtureGenerator(speakers_files, args.path_mixtures, nfiles=args.nfiles, test=args.test)
-    mixer.generate_mixes(snr_levels=[-5, -1, 0, 1, 5],
-                         num_workers=multiprocessing.cpu_count(),
-                         update_steps=100,
-                         trim_db=None if args.test else 20,
-                         vad_db=20,
-                         audioLen=args.audio_len)
+    speakers = [el.name for el in os.scandir(args.path) if int(el.name)][
+        : args.num_speakers
+    ]
+    speakers_files = [
+        LibriSpeechSpeakerFiles(i, args.path, audioTemplate="*.flac") for i in speakers
+    ]
+    mixer = MixtureGenerator(
+        speakers_files, args.path_mixtures, nfiles=args.nfiles, test=args.test
+    )
+    mixer.generate_mixes(
+        snr_levels=[-5, -1, 0, 1, 5],
+        num_workers=multiprocessing.cpu_count(),
+        update_steps=100,
+        trim_db=None if args.test else 20,
+        vad_db=20,
+        audioLen=args.audio_len,
+    )

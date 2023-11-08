@@ -5,10 +5,12 @@ from src.loss.AsymLoss import AsymmetricL2Loss, AsymmetricL2LossPhase
 from src.loss.TripletLossWrapper import TripletLossWrapper
 from src.loss.L1LossWrapper import L1LossWrapper as L1Loss
 
-__all__ = ["L1Loss",
-           "CTCLoss",
-           "SDRLoss",
-           "SpExPlusLoss",
-           "AsymmetricL2Loss",
-           "AsymmetricL2LossPhase",
-           "TripletLossWrapper"]
+__all__ = [
+    "L1Loss",
+    "CTCLoss",
+    "SDRLoss",
+    "SpExPlusLoss",
+    "AsymmetricL2Loss",
+    "AsymmetricL2LossPhase",
+    "TripletLossWrapper",
+]

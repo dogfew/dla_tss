@@ -13,14 +13,14 @@ class BaseTrainer:
     """
 
     def __init__(
-            self,
-            model: BaseModel,
-            criterion,
-            metrics,
-            optimizer,
-            config,
-            device,
-            lr_scheduler
+        self,
+        model: BaseModel,
+        criterion,
+        metrics,
+        optimizer,
+        config,
+        device,
+        lr_scheduler,
     ):
         self.device = device
         self.config = config
