@@ -36,7 +36,7 @@
     },
     "test": {
       "batch_size": 4,
-      "num_workers": 5,
+      "num_workers": 4,
       "datasets": [
         {
           "type": "MixDataset",

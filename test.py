@@ -96,7 +96,6 @@ def main(config, args):
                     for ref, mix, ref_len in zip(reference_minibatches, mix_minibatches, reference_len_minibatches):
                         batch_results.append(model(mix, ref, ref_len)['s1'])
                     batch['s1'] = torch.concatenate(batch_results)
-                if args.window_size != 0:
                     batch['s1'] = batch['s1'].flatten().reshape(1, -1)
                     batch['target_audio'] = batch['target_audio'].flatten()[: batch['target_audio_len']].reshape(1, -1)
                 if 's1' in batch:
