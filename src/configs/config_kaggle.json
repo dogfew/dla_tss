@@ -29,7 +29,7 @@
           "type": "MixDataset",
           "args": {
             "cut_reference": false,
-            "dir": "/kaggle/input/mixtures/mixtures_data/train_clean"
+            "dir": "/kaggle/input/mixturesnew/mixtures_data/train_clean"
           }
         }
       ]
@@ -41,7 +41,7 @@
         {
           "type": "MixDataset",
           "args": {
-            "dir":  "/kaggle/input/mixtures/mixtures_data/test_clean"
+            "dir":  "/kaggle/input/mixturesnew/mixtures_data/test_clean"
           }
         }
       ]
