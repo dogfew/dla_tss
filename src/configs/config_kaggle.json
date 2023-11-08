@@ -51,7 +51,7 @@
     "type": "AdamW",
     "args": {
       "lr": 1e-3,
-      "weight_decay": 4e-6
+      "weight_decay": 3e-6
     }
   },
   "loss": {
@@ -72,7 +72,7 @@
   "trainer": {
     "epochs": 100,
     "save_dir": "saved/",
-    "save_period": 10,
+    "save_period": 5,
     "verbosity": 2,
     "monitor": "min val_loss",
     "early_stop": 100,

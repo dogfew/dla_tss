@@ -3,7 +3,7 @@
 PYTHON_SCRIPT="src/utils/make_dataset.py"
 
 if [ ! -d "mixtures_data/train_clean" ]; then
-    python $PYTHON_SCRIPT --path data/datasets/librispeech/train-clean-100 --path_mixtures mixtures_data/train_clean --num_speakers 96 --nfiles 6000
+    python $PYTHON_SCRIPT --path data/datasets/librispeech/train-clean-100 --path_mixtures mixtures_data/train_clean --num_speakers 96 --nfiles 7000
 else
     echo "Directory mixtures_data/train_clean already exists. Skipping..."
 fi

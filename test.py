@@ -109,14 +109,9 @@ def main(config, args):
                 target_audios.append(batch['target_audio'])
             for pred, target in tqdm(list(zip(pred_audios, target_audios))):
                 metric.update(pred, target)
-                # metrics_to_print['PESQ'].append(metricPESQ(pred, target))
+                metrics_to_print['PESQ'].append(metricPESQ(pred, target))
             print("SISNR", metric.compute().item())
-            # print("PESQ", metricPESQ.compute().item())
-            # for k, v in metrics_to_print.items():
-            #     if v:
-            #         print(k, end=': ')
-            #         print((sum(v) / len(v)).item())
-
+            print("PESQ", metricPESQ.compute().item())
 
 if __name__ == "__main__":
     args = argparse.ArgumentParser(description="PyTorch Template")
