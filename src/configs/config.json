@@ -17,7 +17,7 @@
   "arch": {
     "type": "SpExPlus",
     "args": {
-      "num_speakers": 96
+      "num_speakers": 240
     }
   },
   "data": {

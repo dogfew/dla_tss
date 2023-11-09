@@ -40,7 +40,7 @@
         {
           "type": "MixDataset",
           "args": {
-            "dir": "/home/vladimir/PycharmProjects/TTS/temp_datasets/one_batch"
+            "dir": "/home/vladimir/PycharmProjects/TTS/mixtures_data/test_clean"
           }
         }
       ]

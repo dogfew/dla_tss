@@ -15,6 +15,7 @@ import warnings
 import os
 import shutil
 from speechbrain.utils.data_utils import download_file
+
 ROOT_PATH = Path(__file__).absolute().resolve().parent.parent.parent
 warnings.filterwarnings("ignore")
 
@@ -27,6 +28,7 @@ URL_LINKS = {
     "train-clean-360": "https://www.openslr.org/resources/12/train-clean-360.tar.gz",
     "train-other-500": "https://www.openslr.org/resources/12/train-other-500.tar.gz",
 }
+
 
 def snr_mixer(clean, noise, snr):
     amp_noise = np.linalg.norm(clean) / 10 ** (snr / 20)
@@ -53,8 +55,8 @@ def cut_audios(s1, s2, sec, sr):
 
     segment = 0
     while (segment + 1) * cut_len < len1 and (segment + 1) * cut_len < len2:
-        s1_cut.append(s1[segment * cut_len : (segment + 1) * cut_len])
-        s2_cut.append(s2[segment * cut_len : (segment + 1) * cut_len])
+        s1_cut.append(s1[segment * cut_len: (segment + 1) * cut_len])
+        s2_cut.append(s2[segment * cut_len: (segment + 1) * cut_len])
 
         segment += 1
 
@@ -116,20 +118,25 @@ def create_mix(idx, triplet, snr_levels, out_dir, test=False, sr=16000, **kwargs
     # path_mix = os.path.join(out_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-mixed.wav")
     # path_target = os.path.join(out_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-target.wav")
     # path_ref = os.path.join(out_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-ref.wav")
-    speaker_dir = os.path.join(out_dir, target_id)
-    if not os.path.exists(speaker_dir):
-        os.makedirs(speaker_dir)
+    target_name = f"{target_id}_{noise_id}_" + "%06d" % idx
+    path_mix = os.path.join(out_dir + "/audio", f"{target_id}_{noise_id}_" + "%06d" % idx + "-mixed.wav")
+    path_target = os.path.join(out_dir + "/audio", target_name + "-target.wav")
+    path_ref = os.path.join(out_dir + "/audio", f"{target_id}_{noise_id}_" + "%06d" % idx + "-ref.wav")
+    if not os.path.exists(out_dir + '/audio'):
+        os.makedirs(out_dir + '/audio')
+    if not os.path.exists(out_dir + '/transcriptions'):
+        os.makedirs(out_dir + '/transcriptions')
 
     # Изменяем пути для сохранения файлов
-    path_mix = os.path.join(
-        speaker_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-mixed.wav"
-    )
-    path_target = os.path.join(
-        speaker_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-target.wav"
-    )
-    path_ref = os.path.join(
-        speaker_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-ref.wav"
-    )
+    # path_mix = os.path.join(
+    #     speaker_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-mixed.wav"
+    # )
+    # path_target = os.path.join(
+    #     speaker_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-target.wav"
+    # )
+    # path_ref = os.path.join(
+    #     speaker_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-ref.wav"
+    # )
     snr = np.random.choice(snr_levels, 1).item()
 
     if not test:
@@ -159,9 +166,27 @@ def create_mix(idx, triplet, snr_levels, out_dir, test=False, sr=16000, **kwargs
         loudMix = meter.integrated_loudness(mix)
         mix = pyln.normalize.loudness(mix, loudMix, -23.0)
 
+        target_name = f"{target_id}_{noise_id}_" + "%06d" % idx
+        # path_mix = os.path.join(out_dir + "/audio", f"{target_id}_{noise_id}_" + "%06d" % idx + "-mixed.wav")
+        # path_target = os.path.join(out_dir + "/audio", target_name + "-target.wav")
+        # path_ref = os.path.join(out_dir + "/audio", f"{target_id}_{noise_id}_" + "%06d" % idx + "-ref.wav")
         sf.write(path_mix, mix, sr)
         sf.write(path_target, s1, sr)
         sf.write(path_ref, ref, sr)
+        # write translations
+        with open(f"{out_dir}/transcriptions/{target_name}-target.txt", 'a+') as f1:
+            with open(f"{out_dir}/transcriptions/{target_name}-pred.txt", 'a+') as f3:
+                text_lst = s1_path.split('/')
+                translation_file = f"{text_lst[-3]}-{text_lst[-2]}.trans.txt"
+                translation_path = "/".join(text_lst[:-1]) + "/" + translation_file
+                required_key = s1_path.split('/')[-1].split('.')[0]
+                with open(translation_path, 'r', encoding='utf-8') as f2:
+                    for line in f2:
+                        key, translation = line.split(maxsplit=1)
+                        if key == required_key:
+                            f1.write(translation)
+                            f3.write(translation)
+                            break
 
 
 class LibriSpeechSpeakerFiles:
@@ -187,7 +212,7 @@ class LibriSpeechSpeakerFiles:
 
 class MixtureGenerator:
     def __init__(
-        self, speakers_files, out_folder, nfiles=5000, test=False, randomState=42
+            self, speakers_files, out_folder, nfiles=5000, test=False, randomState=42
     ):
         self.speakers_files = (
             speakers_files  # list of SpeakerFiles for every speaker_id
@@ -281,7 +306,6 @@ class MixtureGenerator:
                     print(f"Files Processed | {i + 1} out of {self.nfiles}")
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Make mixes.")
     parser.add_argument(
@@ -323,8 +347,8 @@ if __name__ == "__main__":
             shutil.rmtree(str(data_dir / "LibriSpeech"))
         args.path = str(data_dir / args.part)
     speakers = [el.name for el in os.scandir(args.path) if int(el.name)][
-        : args.num_speakers
-    ]
+               : args.num_speakers
+               ]
     speakers_files = [
         LibriSpeechSpeakerFiles(i, args.path, audioTemplate="*.flac") for i in speakers
     ]

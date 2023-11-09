@@ -6,6 +6,7 @@ import pandas as pd
 from pathlib import Path
 
 import torch
+import torchaudio
 from torch import autocast
 from tqdm import tqdm
 import torch.nn.functional as F
@@ -68,12 +69,8 @@ def main(config, args):
     metric = SiSDR(zero_mean=True).to(device)
     sample_rate = config['preprocessing']['sr']
     metricPESQ = PESQ(sample_rate, 'wb').to(device)
-    with torch.no_grad(), autocast('cuda'):
+    with torch.no_grad():
         for test_type in ["test", "test-clean", "test-other", "val"]:
-            metrics_to_print = {
-                "SISDR": [],
-                "PESQ": []
-            }
             pred_audios = []
             target_audios = []
             if test_type not in dataloaders.keys():
@@ -88,10 +85,9 @@ def main(config, args):
                     batch = Trainer.move_batch_to_device(separate_batch(batch,
                                                                         frame_size=int(args.window_size * sample_rate)),
                                                          device)
-                    batch_size = 16
-                    reference_minibatches = torch.split(batch['reference_audio'], batch_size)
-                    mix_minibatches = torch.split(batch['mix_audio'], batch_size)
-                    reference_len_minibatches = torch.split(batch['reference_audio_len'], batch_size)
+                    reference_minibatches = torch.split(batch['reference_audio'], 16)
+                    mix_minibatches = torch.split(batch['mix_audio'], 16)
+                    reference_len_minibatches = torch.split(batch['reference_audio_len'], 16)
                     batch_results = []
                     for ref, mix, ref_len in zip(reference_minibatches, mix_minibatches, reference_len_minibatches):
                         batch_results.append(model(mix, ref, ref_len)['s1'])
@@ -103,12 +99,22 @@ def main(config, args):
                     T = batch['target_audio'].shape[1]
                     batch['pred_audio'] = F.pad(batch['s1'], (0, T - batch['s1'].shape[1]))
                     batch['pred_audio'] = batch['pred_audio'][:, :T]
+                    batch['pred_audio'] = batch['pred_audio']
                     assert batch['pred_audio'].shape == batch['target_audio'].shape
                 pred_audios.append(batch['pred_audio'])
                 target_audios.append(batch['target_audio'])
+                if args.out_dir is not None:
+                    target_path = batch['target_audio_path'][0].rsplit('-')[-2].split('/')[-1]
+                    os.makedirs(args.out_dir + f"/target/audio/", exist_ok=True)
+                    os.makedirs(args.out_dir + f"/pred/audio/", exist_ok=True)
+                    torchaudio.save(args.out_dir + f"/target/audio/{target_path}-target.flac",
+                                    batch['target_audio'].cpu(), sample_rate=16_000, format='flac')
+                    torchaudio.save(args.out_dir + f"/pred/audio/{target_path}-pred.flac",
+                                    batch['pred_audio'].cpu() / batch['pred_audio'].norm().cpu() * 20,
+                                    sample_rate=16_000, format='flac')
             for pred, target in tqdm(list(zip(pred_audios, target_audios))):
                 metric.update(pred, target)
-                metrics_to_print['PESQ'].append(metricPESQ(pred, target))
+                metricPESQ.update(pred, target)
             print("SISNR", metric.compute().item())
             print("PESQ", metricPESQ.compute().item())
 
@@ -120,6 +126,13 @@ if __name__ == "__main__":
         default=None,
         type=str,
         help="config file path (default: None)",
+    )
+    args.add_argument(
+        "-o",
+        "--out_dir",
+        default=None,
+        type=str,
+        help="Where to save result outputs",
     )
     args.add_argument(
         "-r",
@@ -136,13 +149,6 @@ if __name__ == "__main__":
         help="indices of GPUs to enable (default: all)",
     )
     args.add_argument(
-        "-o",
-        "--output",
-        default="output.json",
-        type=str,
-        help="File to write results (.json)",
-    )
-    args.add_argument(
         "-t",
         "--test-data-folder",
         default=None,
@@ -152,7 +158,7 @@ if __name__ == "__main__":
     args.add_argument(
         "-b",
         "--batch-size",
-        default=10,
+        default=1,
         type=int,
         help="Test dataset batch size",
     )
