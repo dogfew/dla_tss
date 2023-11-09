@@ -27,22 +27,22 @@ class Trainer(BaseTrainer):
     """
 
     def __init__(
-        self,
-        model,
-        criterion,
-        metrics,
-        optimizer,
-        config,
-        device,
-        audio,
-        dataloaders,
-        text_encoder,
-        log_step=400,  # how often WANDB will log
-        log_predictions_step_epoch=5,
-        mixed_precision=False,
-        lr_scheduler=None,
-        len_epoch=None,
-        skip_oom=True,
+            self,
+            model,
+            criterion,
+            metrics,
+            optimizer,
+            config,
+            device,
+            audio,
+            dataloaders,
+            text_encoder,
+            log_step=400,  # how often WANDB will log
+            log_predictions_step_epoch=5,
+            mixed_precision=False,
+            lr_scheduler=None,
+            len_epoch=None,
+            skip_oom=True,
     ):
         super().__init__(
             model, criterion, metrics, optimizer, config, device, lr_scheduler
@@ -124,9 +124,8 @@ class Trainer(BaseTrainer):
         self.model.train()
         self.criterion.train()
         self.train_metrics.reset()
-        self.writer.add_scalar("epoch", epoch)
         for batch_idx, batch in enumerate(
-            tqdm(self.train_dataloader, desc="train", total=self.len_epoch)
+                tqdm(self.train_dataloader, desc="train", total=self.len_epoch)
         ):
             try:
                 batch = self.process_batch(
@@ -150,12 +149,15 @@ class Trainer(BaseTrainer):
                 self.train_metrics.update("grad norm", self.get_grad_norm())
             if batch_idx % self.log_step == 0:
                 self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
+                self.writer.add_scalar(
+                    "epoch",
+                    epoch,
+                )
                 self.logger.debug(
                     "Train Epoch: {} {} Loss: {:.6f}".format(
                         epoch, self._progress(batch_idx), self.train_metrics.avg("loss")
                     )
                 )
-                # AttributeError: 'ReduceLROnPlateau' object has no attribute 'get_last_lr'
                 self.writer.add_scalar(
                     "learning rate",
                     self.optimizer.state_dict()["param_groups"][0]["lr"],
@@ -182,11 +184,10 @@ class Trainer(BaseTrainer):
             log.update(**{f"{part}_{name}": value for name, value in val_log.items()})
         if self.lr_scheduler is not None:
             self.lr_scheduler.step(metrics=self.train_metrics.avg("loss"))
-            # self.lr_scheduler.step()
         return log
 
     def process_batch(
-        self, batch, batch_idx: int, is_train: bool, metrics: MetricTracker
+            self, batch, batch_idx: int, is_train: bool, metrics: MetricTracker
     ):
         if is_train and not batch_idx % self.accumulation_steps:
             self.optimizer.zero_grad()
@@ -195,9 +196,9 @@ class Trainer(BaseTrainer):
             outputs = self.model(**batch)
             if type(outputs) is dict:
                 batch.update(outputs)
-            if self.config['arch']['type'] == 'SpExPlus':
+            if self.config["arch"]["type"] == "SpExPlus":
                 batch["pred_audio"] = batch["s1"]
-            elif self.config['arch']['type'].starswith('VoiceFilter'):
+            elif self.config["arch"]["type"].starswith("VoiceFilter"):
                 spectrogram = batch.get("pred_spectrogram", batch["mix_spectrogram"])
                 phase = batch.get("pred_phase", batch["mix_phase"])
                 waveform_reconstructed = torch.stack(
@@ -234,9 +235,9 @@ class Trainer(BaseTrainer):
         self.evaluation_metrics.reset()
         with torch.no_grad():
             for batch_idx, batch in tqdm(
-                enumerate(dataloader),
-                desc=part,
-                total=len(dataloader),
+                    enumerate(dataloader),
+                    desc=part,
+                    total=len(dataloader),
             ):
                 try:
                     batch = self.process_batch(
@@ -311,18 +312,18 @@ class Trainer(BaseTrainer):
 
     @torch.no_grad()
     def _log_predictions(
-        self,
-        pred_audio,
-        target_audio,
-        reference_audio,
-        mix_audio,
-        target_audio_path,
-        target_audio_len,
-        reference_audio_len,
-        mix_audio_len,
-        examples_to_log=10,
-        is_train=False,
-        **kwargs,
+            self,
+            pred_audio,
+            target_audio,
+            reference_audio,
+            mix_audio,
+            target_audio_path,
+            target_audio_len,
+            reference_audio_len,
+            mix_audio_len,
+            examples_to_log=10,
+            is_train=False,
+            **kwargs,
     ):
         if self.writer is None:
             return
@@ -342,20 +343,20 @@ class Trainer(BaseTrainer):
         shuffle(tuples)
         rows = {}
         for (
-            pred_audio_,
-            target_audio_,
-            reference_audio_,
-            mixed_audio_,
-            path_,
-            target_len,
-            ref_len,
-            mix_len,
+                pred_audio_,
+                target_audio_,
+                reference_audio_,
+                mixed_audio_,
+                path_,
+                target_len,
+                ref_len,
+                mix_len,
         ) in tuples:
             target_len = target_len.item()
             ref_len = ref_len.item()
             mix_len = mix_len.item()
             pred_audio__ = (
-                20 * pred_audio_.detach().type(torch.float32) / pred_audio_.norm()
+                    20 * pred_audio_.detach().type(torch.float32) / pred_audio_.norm()
             )
             pred_audio__ = torch.nn.functional.pad(
                 pred_audio__, (0, target_len - pred_audio__.shape[0])
@@ -382,6 +383,10 @@ class Trainer(BaseTrainer):
             "predictions", pd.DataFrame.from_dict(rows, orient="index")
         )
 
+    @staticmethod
+    def make_image(spectrogram):
+        return ToTensor()(PIL.Image.open(plot_spectrogram_to_buf(spectrogram)))
+
     @torch.no_grad()
     def _log_spectrogram(self, batch, phase=False):
         idx = -1
@@ -391,15 +396,15 @@ class Trainer(BaseTrainer):
         spectrogram_target = batch[f"target_{name}"][idx].detach().cpu()
         self.writer.add_image(
             f"{name} target",
-            ToTensor()(PIL.Image.open(plot_spectrogram_to_buf(spectrogram_target))),
+            Trainer.make_image(plot_spectrogram_to_buf(spectrogram_target)),
         )
         self.writer.add_image(
             f"{name} pred",
-            ToTensor()(PIL.Image.open(plot_spectrogram_to_buf(spectrogram_pred))),
+            Trainer.make_image(plot_spectrogram_to_buf(spectrogram_pred)),
         )
         self.writer.add_image(
             f"{name} mix",
-            ToTensor()(PIL.Image.open(plot_spectrogram_to_buf(spectrogram_mix))),
+            Trainer.make_image(plot_spectrogram_to_buf(spectrogram_mix)),
         )
 
     @torch.no_grad()

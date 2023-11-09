@@ -11,13 +11,13 @@ from src.utils.parse_config import ConfigParser
 
 class MixDataset:
     def __init__(
-        self,
-        dir,
-        config_parser: ConfigParser,
-        audio,
-        cut_reference=None,
-        *args,
-        **kwargs,
+            self,
+            dir,
+            config_parser: ConfigParser,
+            audio,
+            cut_reference=None,
+            *args,
+            **kwargs,
     ):
         self.config_parser = config_parser
         self.speaker_lst = []

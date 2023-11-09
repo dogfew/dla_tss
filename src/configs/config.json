@@ -1,5 +1,5 @@
 {
-  "name": "default_config",
+  "name": "spex_config",
   "n_gpu": 1,
   "preprocessing": {
     "sr": 16000
@@ -9,10 +9,6 @@
     "args": {
       "n_fft": 511
     }
-  },
-  "augmentations": {
-    "wave": [],
-    "spectrogram": []
   },
   "arch": {
     "type": "SpExPlus",
@@ -78,7 +74,7 @@
     "early_stop": 100,
     "visualize": "wandb",
     "wandbrun": "aboba",
-    "wandb_project": "tss_project",
+    "wandb_project": "none",
     "grad_norm_clip": 10,
     "mixed_precision": true,
     "accumulation_steps": 4

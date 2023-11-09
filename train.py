@@ -63,7 +63,7 @@ def main(config):
     lr_scheduler = config.init_obj(
         config["lr_scheduler"], torch.optim.lr_scheduler, optimizer
     )
-
+    print("Num params", sum(p.numel() for p in model.parameters() if p.requires_grad))
     trainer = Trainer(
         model,
         loss_module,
