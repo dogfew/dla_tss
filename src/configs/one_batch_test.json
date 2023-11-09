@@ -17,18 +17,18 @@
   "arch": {
     "type": "SpExPlus",
     "args": {
-      "num_speakers": 96
+      "num_speakers": 240
     }
   },
   "data": {
     "train": {
-      "batch_size": 4,
+      "batch_size": 8,
       "num_workers": 5,
       "datasets": [
         {
           "type": "MixDataset",
           "args": {
-            "dir": "/home/vladimir/PycharmProjects/TTS/temp_datasets/one_batch"
+            "dir": "mixtures_data/dev_clean"
           }
         }
       ]
@@ -40,7 +40,7 @@
         {
           "type": "MixDataset",
           "args": {
-            "dir": "/home/vladimir/PycharmProjects/TTS/mixtures_data/test_clean"
+            "dir": "mixtures_data/dev_clean"
           }
         }
       ]

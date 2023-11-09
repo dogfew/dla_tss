@@ -13,3 +13,9 @@ if [ ! -d "mixtures_data/test_clean" ]; then
 else
     echo "Directory mixtures_data/test_clean already exists. Skipping..."
 fi
+
+if [ ! -d "mixtures_data/dev_clean" ]; then
+    python $PYTHON_SCRIPT --part dev-clean --path_mixtures mixtures_data/dev_clean --nfiles 100
+else
+    echo "Directory mixtures_data/dev_clean already exists. Skipping..."
+fi
