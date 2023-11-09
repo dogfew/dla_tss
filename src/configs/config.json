@@ -73,8 +73,7 @@
     "monitor": "min val_loss",
     "early_stop": 100,
     "visualize": "wandb",
-    "wandbrun": "aboba",
-    "wandb_project": "none",
+    "wandb_project": "tss_project",
     "grad_norm_clip": 10,
     "mixed_precision": true,
     "accumulation_steps": 4

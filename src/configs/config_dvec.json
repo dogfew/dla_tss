@@ -27,7 +27,7 @@
         {
           "type": "TripletAudioDataset",
           "args": {
-            "dir": "/home/vladimir/PycharmProjects/TTS/temp_datasets/train"
+            "dir":  "mixtures_data/train_clean"
           }
         }
       ]
@@ -60,7 +60,7 @@
     "monitor": "min val_loss",
     "early_stop": 100,
     "visualize": "wandb",
-    "wandb_project": "tss_project",
+    "wandb_project": "none",
     "grad_norm_clip": 10,
     "mixed_precision": true,
     "embeds_batches_to_log": 20,

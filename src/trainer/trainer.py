@@ -198,7 +198,7 @@ class Trainer(BaseTrainer):
                 batch.update(outputs)
             if self.config["arch"]["type"] == "SpExPlus":
                 batch["pred_audio"] = batch["s1"]
-            elif self.config["arch"]["type"].starswith("VoiceFilter"):
+            elif self.config["arch"]["type"].startswith("VoiceFilter"):
                 spectrogram = batch.get("pred_spectrogram", batch["mix_spectrogram"])
                 phase = batch.get("pred_phase", batch["mix_phase"])
                 waveform_reconstructed = torch.stack(
