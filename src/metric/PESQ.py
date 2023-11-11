@@ -1,6 +1,7 @@
 from torchmetrics.audio import PerceptualEvaluationSpeechQuality
 import pesq
 
+
 class PESQ(PerceptualEvaluationSpeechQuality):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

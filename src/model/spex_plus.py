@@ -52,12 +52,12 @@ class TCNBlock(nn.Module):
 
 class TCNBlockSpeaker(TCNBlock):
     def __init__(
-            self,
-            in_channels=256,
-            embedd_dim=100,
-            conv_channels=512,
-            kernel_size=3,
-            dilation=1,
+        self,
+        in_channels=256,
+        embedd_dim=100,
+        conv_channels=512,
+        kernel_size=3,
+        dilation=1,
     ):
         super().__init__(in_channels, conv_channels, kernel_size, dilation)
         self.conv = nn.Conv1d(in_channels + embedd_dim, conv_channels, 1)
@@ -150,7 +150,7 @@ class StackedTCNs(
     nn.Module,
 ):
     def __init__(
-            self, embedd_dim, in_channels, conv_channels, kernel_size, num_blocks=4
+        self, embedd_dim, in_channels, conv_channels, kernel_size, num_blocks=4
     ):
         super().__init__()
         self.speaker_tcn = TCNBlockSpeaker(
@@ -167,7 +167,7 @@ class StackedTCNs(
                     in_channels=in_channels,
                     conv_channels=conv_channels,
                     kernel_size=kernel_size,
-                    dilation=(2 ** b),
+                    dilation=(2**b),
                 )
                 for b in range(1, num_blocks)
             ]
@@ -181,19 +181,19 @@ class StackedTCNs(
 
 class SpExPlus(nn.Module):
     def __init__(
-            self,
-            L1=0.0025,
-            L2=0.0100,
-            L3=0.0200,
-            R=4,
-            B=8,
-            num_filtersSE=256,
-            num_filters1x1=256,
-            num_filtersD=512,
-            kernel_sizeD=3,
-            num_speakers=56,
-            embed_dim=256,
-            sample_rate=16_000,
+        self,
+        L1=0.0025,
+        L2=0.0100,
+        L3=0.0200,
+        R=4,
+        B=8,
+        num_filtersSE=256,
+        num_filters1x1=256,
+        num_filtersD=512,
+        kernel_sizeD=3,
+        num_speakers=56,
+        embed_dim=256,
+        sample_rate=16_000,
     ):
         super().__init__()
         L1, L2, L3 = int(L1 * sample_rate), int(L2 * sample_rate), int(L3 * sample_rate)
@@ -256,7 +256,7 @@ class SpExPlus(nn.Module):
         x = self.speaker_encoder(x)
         # Mean Pooling
         v = x.sum(-1) / (
-                ((reference_audio_len - self.L1) // (self.L1 // 2) + 1) // 27
+            ((reference_audio_len - self.L1) // (self.L1 // 2) + 1) // 27
         ).unsqueeze(1)
 
         for tcn in self.tcns:
