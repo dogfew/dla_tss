@@ -115,8 +115,10 @@ def main(config, args):
             for pred, target in tqdm(list(zip(pred_audios, target_audios))):
                 metric.update(pred, target)
                 metricPESQ.update(pred, target)
-            print("SISNR", metric.compute().item())
-            print("PESQ", metricPESQ.compute().item())
+            print("Type  :", test_type)
+            print("SISNR :", metric.compute().item())
+            print("PESQ  :", metricPESQ.compute().item())
+
 
 if __name__ == "__main__":
     args = argparse.ArgumentParser(description="PyTorch Template")

@@ -183,7 +183,8 @@ class Trainer(BaseTrainer):
             val_log = self._evaluation_epoch(epoch, part, dataloader)
             log.update(**{f"{part}_{name}": value for name, value in val_log.items()})
         if self.lr_scheduler is not None:
-            self.lr_scheduler.step(metrics=self.train_metrics.avg("loss"))
+            metric = self.evaluation_metrics.avg("loss")
+            self.lr_scheduler.step(metrics=metric)
         return log
 
     def process_batch(
@@ -197,7 +198,7 @@ class Trainer(BaseTrainer):
             if type(outputs) is dict:
                 batch.update(outputs)
             if self.config["arch"]["type"] == "SpExPlus":
-                batch["pred_audio"] = batch["s1"]
+                batch["pred_audio"] = torch.nan_to_num(batch["s1"], 0)
             elif self.config["arch"]["type"].startswith("VoiceFilter"):
                 spectrogram = batch.get("pred_spectrogram", batch["mix_spectrogram"])
                 phase = batch.get("pred_phase", batch["mix_phase"])
@@ -361,6 +362,7 @@ class Trainer(BaseTrainer):
             pred_audio__ = torch.nn.functional.pad(
                 pred_audio__, (0, target_len - pred_audio__.shape[0])
             )
+            pred_audio__ = torch.nan_to_num(pred_audio__, 0, 0, 0)
             rows[Path(path_).name] = {
                 "reference": wandb.Audio(
                     reference_audio_.squeeze().cpu()[:ref_len], sample_rate=sr

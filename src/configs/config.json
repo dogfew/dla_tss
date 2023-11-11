@@ -13,19 +13,31 @@
   "arch": {
     "type": "SpExPlus",
     "args": {
-      "num_speakers": 240
+      "num_speakers": 251
     }
   },
   "data": {
     "train": {
       "batch_size": 8,
-      "num_workers": 5,
+      "num_workers": 6,
       "datasets": [
         {
           "type": "MixDataset",
           "args": {
             "cut_reference": false,
             "dir": "mixtures_data/train_clean"
+          }
+        }
+      ]
+    },
+    "val": {
+      "batch_size": 4,
+      "num_workers": 4,
+      "datasets": [
+        {
+          "type": "MixDataset",
+          "args": {
+            "dir": "mixtures_data/dev_clean"
           }
         }
       ]
@@ -47,7 +59,7 @@
     "type": "AdamW",
     "args": {
       "lr": 1e-3,
-      "weight_decay": 4e-6
+      "weight_decay": 2e-6
     }
   },
   "loss": {
@@ -66,9 +78,9 @@
     }
   },
   "trainer": {
-    "epochs": 100,
+    "epochs": 50,
     "save_dir": "saved/",
-    "save_period": 10,
+    "save_period": 5,
     "verbosity": 2,
     "monitor": "min val_loss",
     "early_stop": 100,

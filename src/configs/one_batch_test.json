@@ -33,14 +33,14 @@
         }
       ]
     },
-    "test": {
+    "val": {
       "batch_size":4,
       "num_workers": 5,
       "datasets": [
         {
           "type": "MixDataset",
           "args": {
-            "dir": "mixtures_data/dev_clean"
+            "dir": "mixtures_data/test_clean"
           }
         }
       ]

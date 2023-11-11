@@ -52,12 +52,12 @@ class TCNBlock(nn.Module):
 
 class TCNBlockSpeaker(TCNBlock):
     def __init__(
-        self,
-        in_channels=256,
-        embedd_dim=100,
-        conv_channels=512,
-        kernel_size=3,
-        dilation=1,
+            self,
+            in_channels=256,
+            embedd_dim=100,
+            conv_channels=512,
+            kernel_size=3,
+            dilation=1,
     ):
         super().__init__(in_channels, conv_channels, kernel_size, dilation)
         self.conv = nn.Conv1d(in_channels + embedd_dim, conv_channels, 1)
@@ -98,23 +98,27 @@ class ResBlock(nn.Module):
 
 
 class SharedEncoder(nn.Module):
-    def __init__(self, N, L1, L2, L3):
+    def __init__(self, encoder_kernel_size, L1, L2, L3):
         super().__init__()
         self.L1 = L1
         self.L2 = L2
         self.L3 = L3
+        self.encoder_kernel_size = encoder_kernel_size
+        self.encoder_stride = L1 // 2
         self.encoder_1d_short = nn.Sequential(
-            nn.Conv1d(1, N, L1, stride=L1 // 2), nn.ReLU()
+            nn.Conv1d(1, encoder_kernel_size, L1, stride=L1 // 2), nn.ReLU()
         )
         self.encoder_1d_middle = nn.Sequential(
-            nn.Conv1d(1, N, L2, stride=L1 // 2), nn.ReLU()
+            nn.Conv1d(1, encoder_kernel_size, L2, stride=L1 // 2), nn.ReLU()
         )
         self.encoder_1d_long = nn.Sequential(
-            nn.Conv1d(1, N, L3, stride=L1 // 2), nn.ReLU()
+            nn.Conv1d(1, encoder_kernel_size, L3, stride=L1 // 2), nn.ReLU()
         )
 
     def forward(self, x):
         x_unsqueezed = x.unsqueeze(dim=1)
+        x_unsqueezed, _ = self._align_num_frames_with_strides(x_unsqueezed)
+
         z1 = self.encoder_1d_short(x_unsqueezed)
         padding_const = (z1.shape[-1] - 1) * (self.L1 // 2) - x.shape[-1]
         padding_mid = padding_const + self.L2
@@ -123,12 +127,30 @@ class SharedEncoder(nn.Module):
         z3 = self.encoder_1d_long(F.pad(x_unsqueezed, (0, padding_long)))
         return z1, z2, z3
 
+    def _align_num_frames_with_strides(self, input: torch.Tensor):
+        batch_size, num_channels, num_frames = input.shape
+        is_odd = self.encoder_kernel_size % 2
+        num_strides = (num_frames - is_odd) // self.encoder_stride
+        num_remainings = num_frames - (is_odd + num_strides * self.encoder_stride)
+        if num_remainings == 0:
+            return input, 0
+
+        num_paddings = self.encoder_stride - num_remainings
+        pad = torch.zeros(
+            batch_size,
+            num_channels,
+            num_paddings,
+            dtype=input.dtype,
+            device=input.device,
+        )
+        return torch.cat([input, pad], 2), num_paddings
+
 
 class StackedTCNs(
     nn.Module,
 ):
     def __init__(
-        self, embedd_dim, in_channels, conv_channels, kernel_size, num_blocks=4
+            self, embedd_dim, in_channels, conv_channels, kernel_size, num_blocks=4
     ):
         super().__init__()
         self.speaker_tcn = TCNBlockSpeaker(
@@ -145,7 +167,7 @@ class StackedTCNs(
                     in_channels=in_channels,
                     conv_channels=conv_channels,
                     kernel_size=kernel_size,
-                    dilation=(2**b),
+                    dilation=(2 ** b),
                 )
                 for b in range(1, num_blocks)
             ]
@@ -159,19 +181,19 @@ class StackedTCNs(
 
 class SpExPlus(nn.Module):
     def __init__(
-        self,
-        L1=0.0025,
-        L2=0.0100,
-        L3=0.0200,
-        R=4,
-        B=8,
-        num_filtersSE=256,
-        num_filters1x1=256,
-        num_filtersD=512,
-        kernel_sizeD=3,
-        num_speakers=56,
-        embed_dim=256,
-        sample_rate=16_000,
+            self,
+            L1=0.0025,
+            L2=0.0100,
+            L3=0.0200,
+            R=4,
+            B=8,
+            num_filtersSE=256,
+            num_filters1x1=256,
+            num_filtersD=512,
+            kernel_sizeD=3,
+            num_speakers=56,
+            embed_dim=256,
+            sample_rate=16_000,
     ):
         super().__init__()
         L1, L2, L3 = int(L1 * sample_rate), int(L2 * sample_rate), int(L3 * sample_rate)
@@ -234,7 +256,7 @@ class SpExPlus(nn.Module):
         x = self.speaker_encoder(x)
         # Mean Pooling
         v = x.sum(-1) / (
-            ((reference_audio_len - self.L1) // (self.L1 // 2) + 1) // 27
+                ((reference_audio_len - self.L1) // (self.L1 // 2) + 1) // 27
         ).unsqueeze(1)
 
         for tcn in self.tcns:
