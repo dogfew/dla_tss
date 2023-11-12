@@ -70,7 +70,7 @@ def main(config, args):
     sample_rate = config['preprocessing']['sr']
     metricPESQ = PESQ(sample_rate, 'wb').to(device)
     with torch.no_grad():
-        for test_type in ["test", "test-clean", "test-other", "val"]:
+        for test_type in ["test", "test-clean", "test-other"]:
             pred_audios = []
             target_audios = []
             if test_type not in dataloaders.keys():

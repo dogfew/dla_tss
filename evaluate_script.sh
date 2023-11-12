@@ -4,7 +4,6 @@ pip install -r requirements.txt
 pip install gdown
 mkdir -p default_test_model
 cd default_test_model
-gdown --id 1Pjhw3YC991OPCTdSIcAsO3seHqhvkXR_ -O checkpoint.pth
-gdown --id 1JrK51xkfYZzWZJf9INFyqTIVDQmiiChJ -O config.json
-gdown --id 13UDHWNckiFJtKFHucmM7gewddikWSFh1 -O test_config.json
+gdown --id 1x_k9Iv5NHHSrjOCHkklbiRQ-VjUGI89D -O checkpoint.pth
+gdown --id 1m6qDKEOSCq-S4i8v7tuS8JX2v9WSQZiU -O config.json
 cd ..

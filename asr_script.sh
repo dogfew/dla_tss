@@ -1,5 +1,5 @@
 git clone https://github.com/dogfew/dla_asr
-python test.py -r saved/models/default_config/1108_221810/checkpoint-epoch100.pth -b 1 -o "results_dir"
+python test.py -r default_test_model/checkpoint.pth -b 1 -o "results_dir"
 mkdir results_dir/pred/transcriptions
 mkdir results_dir/target/transcriptions
 cp -r mixtures_data/test_clean/transcriptions results_dir/pred
