@@ -116,7 +116,7 @@ def main(config, args):
                 metric.update(pred, target)
                 metricPESQ.update(pred, target)
             print("Type  :", test_type)
-            print("SISNR :", metric.compute().item())
+            print("SISDR :", metric.compute().item())
             print("PESQ  :", metricPESQ.compute().item())
 
 

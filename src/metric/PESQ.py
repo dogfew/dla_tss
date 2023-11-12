@@ -1,5 +1,6 @@
 from torchmetrics.audio import PerceptualEvaluationSpeechQuality
 import pesq
+import torch
 
 
 class PESQ(PerceptualEvaluationSpeechQuality):
@@ -12,4 +13,4 @@ class PESQ(PerceptualEvaluationSpeechQuality):
             score = super().__call__(pred_audio, target_audio)
             return score
         except pesq.cypesq.NoUtterancesError:
-            return -1
+            return torch.tensor(-0.5)

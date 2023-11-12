@@ -381,9 +381,12 @@ class Trainer(BaseTrainer):
                     pred_audio__[:target_len], target_audio_[:target_len]
                 ),
             }
-        self.writer.add_table(
-            "predictions", pd.DataFrame.from_dict(rows, orient="index")
-        )
+        try:
+            self.writer.add_table(
+                "predictions", pd.DataFrame.from_dict(rows, orient="index")
+            )
+        except Exception as e:
+            print(f"Could not write wandb table: {e}")
 
     @staticmethod
     def make_image(spectrogram):
