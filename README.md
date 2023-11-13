@@ -28,15 +28,13 @@ If you want to check my custom test scores, you need to generate it using script
 Best Scores: 
 
 ```angular2html
-Custom Test: 
-
-SISDR : 11.123692512512207
-PESQ  : 2.1606650352478027
+Custom Test:
+    SISDR : 11.123692512512207
+    PESQ  : 2.1606650352478027
 
 Public Test:
-
-SISDR : 9.03766918182373
-PESQ  : 1.6617153882980347
+    SISDR : 9.03766918182373
+    PESQ  : 1.6617153882980347
 ```
 
 ## Dataset Creation
@@ -97,4 +95,56 @@ Pred audios:
 BS+LM   43.501945  29.385396
 BS      55.379015  32.697679
 ARGMAX   55.49714  32.842108
+```
+
+## WHAM Bonus
+
+To check wham bonus, run: 
+```shell
+bash wham_script.sh <path_to_custom_dir_dataset> <some_new_dir>
+```
+For example: 
+```shell
+bash wham_script.sh mixtures_data/test_clean/audio new_dir
+```
+This script contains: 
+```shell
+NEW_DIR="new_dir"
+if [ ! -d "wham_noise" ]; then
+    wget https://my-bucket-a8b4b49c25c811ee9a7e8bba05fa24c7.s3.amazonaws.com/wham_noise.zip
+    unzip wham_noise.zip
+fi
+bash wham_help.sh mixtures_data/test_clean/audio $NEW_DIR
+python src/utils/wham_noiser.py --mix_dir $NEW_DIR/mix_temp --noise_dir wham_noise/cv --out_dir $NEW_DIR/mix
+python test.py -r default_test_model/checkpoint.pth -t $NEW_DIR
+```
+
+Results: 
+
+```angular2html
+Custom test:
+    SISDR : 7.112639904022217
+    PESQ  : 1.4967007637023926
+Public Test: 
+    SISDR : 7.040417671203613
+    PESQ  : 1.4102576971054077
+```
+
+## Chunk processing bonus 
+
+Just run 
+
+```bash
+python test.py -r default_test_model/checkpoint.pth -w 0.3
+```
+Where -w is window size in seconds. Optionally with `-t` argument if you not using my dataset. 
+
+Results: 
+```angular2html
+Custom test:
+    SISDR : 3.0876545906066895
+    PESQ  : 1.4745478630065918
+Public test: 
+    SISDR : 5.730390548706055
+    PESQ  : 1.3795510530471802
 ```
