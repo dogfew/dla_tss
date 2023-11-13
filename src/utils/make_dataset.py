@@ -115,9 +115,6 @@ def create_mix(idx, triplet, snr_levels, out_dir, test=False, sr=16000, **kwargs
     if len(ref) < sr:
         return
 
-    # path_mix = os.path.join(out_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-mixed.wav")
-    # path_target = os.path.join(out_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-target.wav")
-    # path_ref = os.path.join(out_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-ref.wav")
     target_name = f"{target_id}_{noise_id}_" + "%06d" % idx
     path_mix = os.path.join(
         out_dir + "/audio", f"{target_id}_{noise_id}_" + "%06d" % idx + "-mixed.wav"
@@ -131,16 +128,6 @@ def create_mix(idx, triplet, snr_levels, out_dir, test=False, sr=16000, **kwargs
     if not os.path.exists(out_dir + "/transcriptions"):
         os.makedirs(out_dir + "/transcriptions")
 
-    # Изменяем пути для сохранения файлов
-    # path_mix = os.path.join(
-    #     speaker_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-mixed.wav"
-    # )
-    # path_target = os.path.join(
-    #     speaker_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-target.wav"
-    # )
-    # path_ref = os.path.join(
-    #     speaker_dir, f"{target_id}_{noise_id}_" + "%06d" % idx + "-ref.wav"
-    # )
     snr = np.random.choice(snr_levels, 1).item()
 
     if not test:
@@ -171,13 +158,9 @@ def create_mix(idx, triplet, snr_levels, out_dir, test=False, sr=16000, **kwargs
         mix = pyln.normalize.loudness(mix, loudMix, -23.0)
 
         target_name = f"{target_id}_{noise_id}_" + "%06d" % idx
-        # path_mix = os.path.join(out_dir + "/audio", f"{target_id}_{noise_id}_" + "%06d" % idx + "-mixed.wav")
-        # path_target = os.path.join(out_dir + "/audio", target_name + "-target.wav")
-        # path_ref = os.path.join(out_dir + "/audio", f"{target_id}_{noise_id}_" + "%06d" % idx + "-ref.wav")
         sf.write(path_mix, mix, sr)
         sf.write(path_target, s1, sr)
         sf.write(path_ref, ref, sr)
-        # write translations
         with open(f"{out_dir}/transcriptions/{target_name}-target.txt", "a+") as f1:
             with open(f"{out_dir}/transcriptions/{target_name}-pred.txt", "a+") as f3:
                 text_lst = s1_path.split("/")

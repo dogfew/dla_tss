@@ -68,11 +68,6 @@ class ComplexAudio:
             window=torch.hann_window(self.win_length, device=y.device),
             return_complex=True,
         )
-        # magnitudes = torch.abs(y)
-        # phase = torch.angle(y)
-        # S = 20.0 * torch.log10(torch.clamp(magnitudes, min=1e-5)) - self.ref_level
-        # S = torch.clamp(S / -self.min_level, -1.0, 0.0) + 1.0
-        # S, phase = S, phase
         return complex_spec, complex_spec
 
     def spec2wav(self, complex_spec, phase=None):
@@ -83,5 +78,4 @@ class ComplexAudio:
             win_length=self.win_length,
             window=torch.hann_window(self.win_length, device=complex_spec.device),
         )
-        print(y)
         return y
