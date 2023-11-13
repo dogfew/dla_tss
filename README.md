@@ -37,26 +37,34 @@ Public Test:
     PESQ  : 1.6617153882980347
 ```
 
-## Dataset Creation
+## Dataset Creation and training
 To create dataset, run "datasetscript.sh": 
 ```shell
 bash datasetscript.sh
 ```
-This script co
 
-To reproduce my final model, train with this config (50 epochs): 
+To reproduce my final model, train SpEx+ with this config (50 epochs): 
 ```shell
 python train.py -c src/configs/config.json
 ```
 
-To check that you __can__ run train: 
+To check that you __can__ run train (one-batch-test): 
 ```shell
-python train.py -c hw_asr/configs/one_batch_test.json
+python train.py -c src/configs/one_batch_test.json
 ```
 
-**Optional Tasks: 0.5**: External LM for evaluation. 
+**Optional Tasks:**
 
-**Expected Grade**: 9.5/11
+- (+0.7) SpEx+ is implemented and i've used classification head. You can check implementation in 
+of main model here: `src/model/spex_plus.py` and loss implementation here: `src/loss/SDRLoss.py`
+- (+0.5) SI-SNR Loss for VoiceFilter (you can train it using `src/configs/config_voicefilter.json`)
+and you can find loss here: `src/loss/SDRLoss.py`. For audio preprocessing and post-processing, please check
+`src/utils/audio.py`.
+- (+0.5) Providing validation results on noised dataset of 1000 mixes. Check "WHAM BONUS" on this page
+- (+0.5) For measuring the quality of your model in the case of audio stream (...).
+  Check "Chunk processing bonus" on this page
+- (+1.0) for measuring WER and CER using one of your ASR ready solutions (...). Check "ASR Bonus" on this page. 
+
 
 ## ASR Bonus
 
