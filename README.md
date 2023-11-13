@@ -60,7 +60,7 @@ python train.py -c hw_asr/configs/one_batch_test.json
 
 ## ASR Bonus
 
-To check ASR bonus, please run 
+To check ASR bonus, please run (assuming you created dataset using `datasetscript.sh`)
 ```shell
 bash asr_script.sh
 ```
@@ -123,11 +123,11 @@ Results:
 
 ```angular2html
 Custom test:
-    SISDR : 7.112639904022217
-    PESQ  : 1.4967007637023926
+    SISDR : 7.035943508148193
+    PESQ  : 1.4987353086471558
 Public Test: 
-    SISDR : 7.040417671203613
-    PESQ  : 1.4102576971054077
+    SISDR : 6.837635040283203
+    PESQ  : 1.483285903930664
 ```
 
 ## Chunk processing bonus 
@@ -137,7 +137,7 @@ Just run
 ```bash
 python test.py -r default_test_model/checkpoint.pth -w 0.3
 ```
-Where -w is window size in seconds. Optionally with `-t` argument if you not using my dataset. 
+Where -w is window size in seconds. Optionally with `-t` argument if you not using my dataset.
 
 Results: 
 ```angular2html
